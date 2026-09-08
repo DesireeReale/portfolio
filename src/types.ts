@@ -26,3 +26,9 @@ export interface Skill {
   icon: string;
   category: 'core' | 'tools';
 }
+
+export interface Service {
+  icon: string;
+  title: string;
+  description: string;
+}

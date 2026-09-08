@@ -57,7 +57,7 @@ export default function Hero({ isDark }: HeroProps) {
 
         {/* Floating Cards */}
         <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 -mt-2"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12"
           style={{ animation: 'fadeIn 0.7s ease-out 0.5s both' }}
         >
           <StatBox label="Esperienza" value="2+" sub="Anni" isDark={isDark} />
@@ -84,7 +84,7 @@ function HeroContent({
   textMuted: string;
 }) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
       {/* Left: Text */}
       <div className="lg:col-span-3 space-y-8">
         {/* Availability Badge */}

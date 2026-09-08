@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bgOg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="glowOg" cx="0.78" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bgOg)"/>
+  <rect width="1200" height="630" fill="url(#glowOg)"/>
+
+  <!-- rete di particelle sobria -->
+  <g stroke="#38bdf8" stroke-opacity="0.18" stroke-width="1.2">
+    <line x1="880" y1="90" x2="1010" y2="150"/>
+    <line x1="1010" y1="150" x2="960" y2="270"/>
+    <line x1="960" y1="270" x2="1080" y2="330"/>
+    <line x1="880" y1="90" x2="960" y2="270"/>
+  </g>
+  <g fill="#38bdf8">
+    <circle cx="880" cy="90" r="4" fill-opacity="0.7"/>
+    <circle cx="1010" cy="150" r="5"/>
+    <circle cx="960" cy="270" r="4" fill-opacity="0.7"/>
+    <circle cx="1080" cy="330" r="3.5" fill-opacity="0.6"/>
+  </g>
+
+  <!-- logo terminale -->
+  <g transform="translate(90,86)">
+    <rect width="56" height="56" rx="14" fill="#38bdf8"/>
+    <path d="M18 20 l10 8 l-10 8 M32 38 h10" stroke="#0b1220" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="162" y="124" fill="#e2e8f0" font-size="24" font-weight="700" letter-spacing="1">DESIRÈE REALE</text>
+
+  <!-- badge disponibile -->
+  <g transform="translate(90,220)">
+    <circle cx="6" cy="10" r="6" fill="#34d399"/>
+    <text x="24" y="15" fill="#34d399" font-size="17" font-weight="700" letter-spacing="3" font-family="monospace">DISPONIBILE PER COLLABORARE</text>
+  </g>
+
+  <!-- nome grande -->
+  <text x="86" y="330" fill="#f8fafc" font-size="96" font-weight="800" letter-spacing="-2">Desirèe <tspan fill="#38bdf8">Reale</tspan></text>
+  <text x="90" y="392" fill="#cbd5e1" font-size="40" font-weight="700">AI &amp; LLM Engineer</text>
+
+  <!-- tagline -->
+  <text x="90" y="470" fill="#94a3b8" font-size="27">Automatizzo processi aziendali con l'AI:</text>
+  <text x="90" y="508" fill="#94a3b8" font-size="27">sistemi che lavorano da soli, in produzione.</text>
+
+  <!-- stack -->
+  <text x="90" y="576" fill="#64748b" font-size="20" font-family="monospace" letter-spacing="1">Python · RAG · LLM Agents · MCP · Docker</text>
+</svg>

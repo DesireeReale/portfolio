@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import ServicesSection from './components/ServicesSection';
 import ProjectSection from './components/ProjectSection';
 import ExperienceSection from './components/ExperienceSection';
 import TechStack from './components/TechStack';
 import Footer from './components/Footer';
+import ParticleField from './components/ParticleField';
 
 export default function App() {
   const [isDark, setIsDark] = useState(true);
@@ -12,11 +14,13 @@ export default function App() {
   const toggleTheme = () => setIsDark(!isDark);
 
   return (
-    <div className={`min-h-screen font-sans relative overflow-x-hidden transition-colors duration-500 ${isDark ? 'bg-[#020617] text-[#f8fafc]' : 'bg-[#fafaf9] text-[#1c1917]'}`}>
+    <div className={`min-h-screen font-sans relative overflow-x-hidden transition-colors duration-500 ${isDark ? 'text-[#f8fafc]' : 'text-[#1c1917]'}`}>
+      <ParticleField isDark={isDark} />
       <Navbar isDark={isDark} toggleTheme={toggleTheme} />
       
-      <main className="pt-24 pb-20 px-6 max-w-7xl mx-auto space-y-48">
+      <main className="pt-24 pb-20 px-6 max-w-7xl mx-auto space-y-24 md:space-y-28">
         <Hero isDark={isDark} />
+        <ServicesSection isDark={isDark} />
         <ProjectSection isDark={isDark} />
         <ExperienceSection isDark={isDark} />
         <TechStack isDark={isDark} />

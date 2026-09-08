@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Project } from '../types';
 import { PROJECTS } from '../constants';
 import { PROFILE } from '../constants';
-import { ChevronRight, Eye, X, AlertCircle, Lightbulb, Search } from 'lucide-react';
+import { ChevronRight, Eye, X, AlertCircle, Lightbulb, TrendingUp } from 'lucide-react';
 
 interface ProjectSectionProps {
   isDark: boolean;
@@ -132,9 +132,9 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
         </div>
         <div className="p-6 md:p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <DetailBlock icon={<AlertCircle size={16} />} label="problema" title="Problema" content={project.problem || ''} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} />
+            <DetailBlock icon={<AlertCircle size={16} />} label="situazione" title="Situazione" content={project.problem || ''} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} />
             <DetailBlock icon={<Lightbulb size={16} />} label="soluzione" title="Soluzione" content={project.solution || ''} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} />
-            <DetailBlock icon={<Search size={16} />} label="perché_interesting" title="Cosa Lo Rende Interessante" content={project.whyInteresting || ''} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} highlight />
+            <DetailBlock icon={<TrendingUp size={16} />} label="risultato" title="Risultato" content={project.whyInteresting || ''} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} highlight />
           </div>
           <div className="flex flex-wrap gap-2 pt-4" style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
             {project.tech.map(t => (
@@ -201,6 +201,10 @@ function ProjectCard({ project, hoveredId, onHover, isDark, primary, textMain, t
         border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}`,
         boxShadow: isDark ? 'none' : '0 1px 12px rgba(0,0,0,0.06)',
         transform: isHovered ? `perspective(800px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.02, 1.02, 1.02)` : 'none',
+        transition: isHovered
+          ? 'transform 0.12s ease-out, box-shadow 0.3s, border-color 0.3s'
+          : 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s, border-color 0.3s',
+        willChange: 'transform',
         zIndex: isHovered ? 10 : 1
       }}
       onMouseEnter={() => onHover(project.id)}

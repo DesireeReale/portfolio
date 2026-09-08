@@ -33,7 +33,7 @@ export default function ExperienceSection({ isDark }: ExperienceSectionProps) {
       {/* Timeline */}
       <div className="space-y-0">
         {EXPERIENCES.map((exp, idx) => (
-          <div 
+          <div
             key={exp.id}
             className="relative grid grid-cols-1 md:grid-cols-12 gap-8 pb-16 group"
           >
@@ -59,7 +59,7 @@ export default function ExperienceSection({ isDark }: ExperienceSectionProps) {
               <h3 className="text-2xl font-bold tracking-tight" style={{ color: textMain }}>
                 {exp.role}
               </h3>
-              
+
               <p style={{ color: textMuted, lineHeight: '1.75' }}>
                 {exp.description}
               </p>
@@ -67,7 +67,7 @@ export default function ExperienceSection({ isDark }: ExperienceSectionProps) {
               {/* Tags */}
               <div className="flex flex-wrap gap-2 pt-2">
                 {exp.tags.map((tag) => (
-                  <span 
+                  <span
                     key={tag}
                     className="text-[10px] font-mono px-2.5 py-1 rounded-md"
                     style={{
@@ -103,12 +103,12 @@ export default function ExperienceSection({ isDark }: ExperienceSectionProps) {
             Aperta a consulenze e collaborazioni in AI, automazione e sistemi intelligenti.
           </p>
         </div>
-        <a 
-          href={`mailto:desiree.reale@email.com`}
+        <a
+          href={`mailto:desysir@yahoo.it`}
           className="px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all shrink-0 cursor-pointer"
           style={{ backgroundColor: primary, color: 'black' }}
         >
-            Contattami
+          Contattami
         </a>
       </div>
     </section>

@@ -1,10 +1,10 @@
-import { Project, Experience, Skill } from './types';
+import { Project, Experience, Skill, Service } from './types';
 
 export const PROFILE = {
   name: 'Desirèe Reale',
   title: 'AI & LLM Engineer',
-  bio: 'Trasformo processi manuali in sistemi intelligenti. Costruisco agenti LLM autonomi, pipeline RAG e workflow orchestrati che lavorano 24/7 senza intervento umano. Dallo sviluppo Python all\'integrazione di modelli open-source — il mio obiettivo è creare AI che risolvono problemi reali.',
-  email: 'desiree.reale@email.com',
+  bio: 'Costruisco sistemi AI che automatizzano processi aziendali: agenti LLM, pipeline RAG e workflow che girano in autonomia. Lavoro in Python e integro modelli open-source in contesti di produzione.',
+  email: 'desysir@yahoo.it',
   linkedin: 'https://www.linkedin.com/in/desiree-reale-2a92952a6',
   github: 'https://github.com/desireereale',
   location: 'Siracusa → Rovigo, Italy',
@@ -14,7 +14,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'doc-rag',
     title: 'Classificatore Documenti Intelligente',
-    description: 'Pipeline AI che ingerisce documenti grezzi, estrae metadati strutturati tramite LLM e li archivia in database con controllo accessi per ruolo e audit trail granulare — zero intervento manuale.',
+    description: 'Sistema di classificazione documentale basato su AI. Estrazione automatica dei metadati, validazione umana con accessi per ruolo e tracciamento completo delle modifiche.',
     image: '/card1.png',
     tags: ['AI Extraction', 'RAG Pipeline', 'Workflow Automation'],
     tech: ['LLM', 'RAG', 'Python', 'PostgreSQL', 'n8n'],
@@ -25,14 +25,14 @@ export const PROJECTS: Project[] = [
       'Audit trail granulare',
       'Workflow zero intervento manuale'
     ],
-    problem: 'Centinaia di documenti aziendali che arrivano ogni giorno, classificati a mano, archiviati male, impossibili da trovare. Un lavoro ripetitivo che nessuno dovrebbe fare nel 2025.',
-    solution: 'Un sistema end-to-end dove i documenti entrano grezzi ed escono classificati, codificati e archiviati — senza che nessuno tocchi nulla. Un modello AI legge ogni documento, capisce di cosa si tratta, estrae i metadati rilevanti e popola automaticamente un database strutturato. Poi parte un workflow di revisione con interfaccia web dedicata: gli operatori vedono solo i documenti di loro competenza, possono validare o correggere ogni campo, e ogni modifica viene tracciata campo per campo con valore prima e dopo. Zero documenti persi. Zero classificazioni sbagliate che passano inosservate. Storico completo di tutto.',
-    whyInteresting: 'Non è un semplice "upload e basta". C\'è un\'architettura multi-layer con controllo accessi per ruolo, pipeline AI con prompt engineering per l\'estrazione strutturata, e un sistema di audit trail granulare. Il tutto orchestrato con automazione no-code/low-code su infrastruttura cloud.'
+    problem: 'Ingestione quotidiana di centinaia di documenti eterogenei, con classificazione e indicizzazione manuali. Metadati incoerenti, nessuna normalizzazione e retrieval inefficiente sull\'archivio.',
+    solution: 'Una pipeline estrae i metadati da ogni documento con un modello linguistico e popola automaticamente il database. Un\'interfaccia di revisione mostra a ciascun operatore solo i documenti di sua competenza; ogni modifica viene registrata campo per campo, con valore precedente e successivo.',
+    whyInteresting: 'Classificazione manuale eliminata. Documenti reperibili e tracciabili, con storico completo di ogni intervento.'
   },
   {
     id: 'drive-monitor',
     title: 'Monitoring Google Drive Folder',
-    description: 'Agente event-driven che monitora cartelle cloud in tempo reale, gestisce flussi di approvazione multi-step direttamente via Telegram con callback stateful, e mantiene un registro automatico di ogni decisione.',
+    description: 'Agente event-driven che monitora cartelle cloud in tempo reale e gestisce l\'approvazione delle modifiche via Telegram, con registro automatico di ogni decisione.',
     image: '/card2.png',
     tags: ['Event-Driven', 'Telegram Bot', 'Real-Time Automation'],
     tech: ['n8n', 'Telegram Bot API', 'Google Drive API', 'Python'],
@@ -43,14 +43,14 @@ export const PROJECTS: Project[] = [
       'Callback stateful',
       'Registro automatico decisioni'
     ],
-    problem: 'Le modifiche sui file aziendali succedono. Il problema è che nessuno se ne accorge in tempo — e quando se ne accorgono, il processo di approvazione è un disastro tra email, telefonate e "me lo mandi su WhatsApp".',
-    solution: 'Un agente di sorveglianza sempre attivo che monitora le cartelle cloud in tempo reale. Appena rileva una modifica rilevante, notifica il responsabile direttamente su Telegram con tutti i dettagli del file. Il responsabile può approvare o rifiutare con un tap — e se approva, il bot gli chiede subito la motivazione con una selezione guidata. Il registro si aggiorna automaticamente, l\'audit trail è completo, e non è stato aperto nessun gestionale. L\'intero flusso di approvazione vive dentro una chat.',
-    whyInteresting: 'Gestione stateful di conversazioni Telegram con callback multi-step, ottimizzazione dei payload entro i limiti del protocollo, sincronizzazione tra eventi asincroni su Drive e risposte utente in tempo reale. Un sistema che sembra semplice da usare ma ha una logica di orchestrazione tutt\'altro che banale sotto.'
+    problem: 'Nessun meccanismo di change detection sui file condivisi: le modifiche non generavano eventi e il flusso di approvazione era gestito in modo asincrono e non tracciato, tra email e messaggistica.',
+    solution: 'Un agente sorveglia le cartelle cloud e, a ogni modifica rilevante, notifica il responsabile su Telegram con i dettagli del file. L\'approvazione avviene nella chat, con motivazione guidata, e il registro si aggiorna automaticamente.',
+    whyInteresting: 'Ogni modifica intercettata in tempo reale e ogni approvazione tracciata, senza aprire alcun gestionale.'
   },
   {
     id: 'invoice-agent',
     title: 'Agente AI per la Fatturazione',
-    description: 'Pipeline end-to-end che trasforma dati di fatturato grezzi in report PowerPoint direzionali — normalizzazione multi-sorgente, generazione programmatica con python-pptx e distribuzione automatica. Trigger-based, zero touch.',
+    description: 'Pipeline che trasforma i dati di fatturato grezzi in report PowerPoint direzionali, generati e distribuiti automaticamente a ogni nuovo dato.',
     image: '/card3.png',
     tags: ['Python', 'Data Pipeline', 'Generative Automation'],
     tech: ['Python', 'python-pptx', 'n8n', 'Docker', 'LLM'],
@@ -61,9 +61,86 @@ export const PROJECTS: Project[] = [
       'Distribuzione automatica',
       'Trigger-based, zero touch'
     ],
-    problem: 'Ogni mese, ore perse a raccogliere dati da fonti diverse, normalizzarli, copiarli nel template, aggiornare grafici e tabelle, sistemare il layout, mandare il file. Un processo noioso, lento e — inevitabilmente — fonte di errori umani.',
-    solution: 'Un agente autonomo che si attiva da solo quando arrivano i nuovi dati. Scarica il file, lo elabora, lo normalizza, lo passa a uno script Python che costruisce il PowerPoint da zero — grafici, tabelle, confronti con l\'anno precedente, layout aziendale incluso. Poi carica il report su Drive e lo invia ai destinatari. Dal caricamento dei dati al report distribuito: pochi minuti, zero intervento umano. Il commerciale apre la mail e trova il cruscotto già pronto. Ogni mese. Sempre.',
-    whyInteresting: 'Generazione programmatica di presentazioni complesse con python-pptx, pipeline di normalizzazione dati multi-sorgente, trigger event-driven su cloud storage, e orchestrazione dell\'intero flusso con gestione errori e fallback. Non è "manda una mail automatica" — è una pipeline di produzione dati completa.'
+    problem: 'Consolidamento manuale di dati da sorgenti multiple con schemi disomogenei, seguito da reportistica compilata a mano nel template PowerPoint: processo non riproducibile e soggetto a errori.',
+    solution: 'All\'arrivo dei nuovi dati la pipeline li normalizza e uno script Python genera il PowerPoint da zero: grafici, tabelle, confronti con l\'anno precedente e layout aziendale. Il report viene quindi archiviato e inviato ai destinatari.',
+    whyInteresting: 'Dal dato al report distribuito in pochi minuti, senza intervento manuale. Un report puntuale ogni mese, privo di errori di copiatura.'
+  },
+  {
+    id: 'tender-monitor',
+    title: 'Monitoraggio Bandi con Categorizzazione AI',
+    description: 'Monitoraggio automatico dei bandi di gara con categorizzazione tramite modello linguistico. Servizio containerizzato, esecuzione schedulata giornaliera e integrazione con l\'archivio documentale esistente.',
+    image: '/card4.svg',
+    tags: ['In Produzione', 'AI Categorization', 'Scheduled Automation'],
+    tech: ['Python', 'LLM', 'RAG', 'Docker', 'Scheduler'],
+    link: '#',
+    features: [
+      'Monitoraggio bandi automatico',
+      'Categorizzazione AI dei documenti',
+      'Esecuzione schedulata giornaliera',
+      'Deploy containerizzato in produzione'
+    ],
+    problem: 'Polling manuale delle fonti dei bandi, senza filtraggio né classificazione automatica: copertura non garantita e latenza elevata nell\'individuare le gare pertinenti.',
+    solution: 'Ogni giorno il servizio raccoglie i nuovi bandi, ne fa analizzare categoria e pertinenza a un modello AI e li archivia già ordinati. Gira in un container avviato da uno scheduler e riusa le categorie dell\'archivio documentale aziendale.',
+    whyInteresting: 'Presidio dei bandi automatizzato e attivo in produzione, operativo ogni giorno senza intervento.'
+  },
+  {
+    id: 'legacy-rebuild',
+    title: 'Ricostruzione di un Registro Dati Critico',
+    description: 'Ricostruzione di un registro dati critico, prima gestito da un workflow no-code che produceva oltre metà delle righe errate, riscritto come applicativo Python affidabile e ripetibile.',
+    image: '/card5.svg',
+    tags: ['Affidabilità', 'Legacy Migration', 'Python'],
+    tech: ['Python', 'PostgreSQL', 'Data Validation'],
+    link: '#',
+    features: [
+      'Analisi del sistema legacy esistente',
+      'Riscrittura in Python locale',
+      'Validazione dei dati campo per campo',
+      'Da oltre 50% di righe rotte a elaborazione affidabile'
+    ],
+    problem: 'Pipeline no-code stratificata e priva di validazione: oltre il 50% dei record prodotti risultava errato o incompleto, senza gestione degli errori né idempotenza, con riconciliazione manuale a ogni esecuzione.',
+    solution: 'Analisi dell\'output atteso e riscrittura da zero in Python: logica esplicita, validazione dei dati a ogni passaggio e risultati ripetibili. Nessuna dipendenza da servizi esterni.',
+    whyInteresting: 'Da oltre il 50% di righe errate a un\'elaborazione affidabile e verificabile, senza più correzioni manuali.'
+  },
+  {
+    id: 'ai-command-center',
+    title: 'Dashboard Progetti + Assistente AI',
+    description: 'Dashboard che raccoglie lo stato dei progetti, affiancata da un assistente AI su modello locale e da un server MCP dedicato. Realizzata con la sola libreria standard di Python.',
+    image: '/card6.svg',
+    tags: ['MCP', 'Local LLM', 'Full-Stack'],
+    tech: ['Python', 'MCP', 'Local LLM', 'HTML/JS'],
+    link: '#',
+    features: [
+      'Dashboard live dello stato progetti',
+      'Agente AI su modello locale (chat sulla knowledge base)',
+      'Server MCP custom per assistenti di coding',
+      'Solo standard library, nessuna dipendenza esterna'
+    ],
+    problem: 'Stato dei progetti frammentato su file e note eterogenee, senza un layer di aggregazione né un\'interfaccia interrogabile a livello di programma.',
+    solution: 'Una dashboard aggrega i progetti e il loro stato. Un assistente collegato a un modello locale risponde interrogando la knowledge base, mentre un server MCP dedicato espone gli stessi dati agli strumenti di sviluppo. Tutto in locale, con limitazione delle richieste verso il gateway e senza dipendenze esterne.',
+    whyInteresting: 'Stato dei progetti consultabile a colpo d\'occhio e interrogabile in linguaggio naturale, con un sistema avviabile senza alcuna installazione.'
+  }
+];
+
+export const SERVICES: Service[] = [
+  {
+    icon: 'FileText',
+    title: 'Automazione documentale',
+    description: 'Classificazione, estrazione dati e archiviazione dei documenti in automatico. Meno lavoro manuale e informazioni sempre reperibili.'
+  },
+  {
+    icon: 'LineChart',
+    title: 'Pipeline dati e reportistica',
+    description: 'Dai dati grezzi al report pronto, senza passaggi manuali: normalizzazione da più sorgenti e generazione programmata.'
+  },
+  {
+    icon: 'Bot',
+    title: 'Agenti e assistenti AI',
+    description: 'Agenti LLM e sistemi RAG su misura, che rispondono sulla tua base di conoscenza e agiscono con strumenti dedicati.'
+  },
+  {
+    icon: 'Workflow',
+    title: 'Integrazione e bonifica',
+    description: 'Integrazione dell\'AI nei sistemi che già usi e sostituzione di workflow fragili con codice affidabile.'
   }
 ];
 
@@ -73,7 +150,7 @@ export const EXPERIENCES: Experience[] = [
     role: 'Artificial Intelligence Engineer',
     company: 'Ciscra S.p.A.',
     period: 'Feb 2026 - Presente',
-    description: 'Progetto e costruisco sistemi AI end-to-end: da agenti LLM autonomi a pipeline RAG con retrieval contestuale, passando per workflow orchestrati con n8n e LangFlow. Prompt engineering avanzato per output strutturati, orchestrazione di API e integrazione di modelli open-source (Qwen, Llama, Mistral) in contesti produttivi. Il mio obiettivo? Trasformare processi manuali in sistemi intelligenti che lavorano da soli.',
+    description: 'Progettazione e sviluppo di sistemi AI in produzione: agenti LLM, pipeline RAG con retrieval contestuale e workflow orchestrati con n8n e LangFlow. Prompt engineering per output strutturati, integrazione di API e di modelli open-source (Qwen, Llama, Mistral).',
     tags: ['LLM Agents', 'RAG', 'Prompt Engineering', 'n8n', 'LangFlow', 'Qwen', 'Llama', 'Mistral']
   },
   {

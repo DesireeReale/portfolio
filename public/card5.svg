@@ -1,0 +1,88 @@
+<svg viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bg5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="glow5" cx="0.75" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur5"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+
+  <rect width="600" height="500" fill="url(#bg5)"/>
+  <rect width="600" height="500" fill="url(#glow5)"/>
+
+  <!-- title -->
+  <text x="36" y="58" fill="#f8fafc" font-size="30" font-weight="800" letter-spacing="1">LEGACY SYSTEM</text>
+  <text x="36" y="92" fill="#38bdf8" font-size="30" font-weight="800" letter-spacing="2">REBUILD</text>
+
+  <!-- stat badge -->
+  <g transform="translate(430,300)">
+    <text x="0" y="0" fill="#f8fafc" font-size="46" font-weight="800" text-anchor="middle">100%</text>
+    <text x="0" y="26" fill="#34d399" font-size="13" font-weight="700" letter-spacing="3" text-anchor="middle">AFFIDABILE</text>
+    <text x="0" y="-58" fill="#64748b" font-size="15" font-weight="700" text-anchor="middle" text-decoration="line-through">53% ROTTO</text>
+  </g>
+
+  <!-- broken rows (before) -->
+  <g transform="translate(40,150)">
+    <text x="0" y="-10" fill="#64748b" font-size="12" font-family="monospace" letter-spacing="2">PRIMA · NO-CODE</text>
+    <g>
+      <rect width="150" height="30" rx="6" fill="#1e1113" stroke="#7f1d1d"/>
+      <path d="M14 15 l8 8 M22 15 l-8 8" stroke="#ef4444" stroke-width="2"/>
+      <rect x="36" y="12" width="90" height="6" rx="3" fill="#7f1d1d"/>
+    </g>
+    <g transform="translate(0,40)">
+      <rect width="150" height="30" rx="6" fill="#0f172a" stroke="#334155"/>
+      <path d="M15 12 l6 6 l10 -12" fill="none" stroke="#475569" stroke-width="2"/>
+      <rect x="36" y="12" width="78" height="6" rx="3" fill="#334155"/>
+    </g>
+    <g transform="translate(0,80)">
+      <rect width="150" height="30" rx="6" fill="#1e1113" stroke="#7f1d1d"/>
+      <path d="M14 15 l8 8 M22 15 l-8 8" stroke="#ef4444" stroke-width="2"/>
+      <rect x="36" y="12" width="96" height="6" rx="3" fill="#7f1d1d"/>
+    </g>
+    <g transform="translate(0,120)">
+      <rect width="150" height="30" rx="6" fill="#1e1113" stroke="#7f1d1d"/>
+      <path d="M14 15 l8 8 M22 15 l-8 8" stroke="#ef4444" stroke-width="2"/>
+      <rect x="36" y="12" width="70" height="6" rx="3" fill="#7f1d1d"/>
+    </g>
+  </g>
+
+  <!-- arrow -->
+  <g transform="translate(212,215)">
+    <line x1="0" y1="0" x2="70" y2="0" stroke="#38bdf8" stroke-width="2.5" filter="url(#blur5)"/>
+    <line x1="0" y1="0" x2="70" y2="0" stroke="#7dd3fc" stroke-width="2"/>
+    <path d="M62 -7 L74 0 L62 7 Z" fill="#7dd3fc"/>
+    <text x="4" y="-14" fill="#38bdf8" font-size="12" font-family="monospace" letter-spacing="1">PYTHON</text>
+  </g>
+
+  <!-- clean rows (after) -->
+  <g transform="translate(300,150)">
+    <text x="0" y="-10" fill="#64748b" font-size="12" font-family="monospace" letter-spacing="2">DOPO · PYTHON LOCALE</text>
+    <g>
+      <rect width="150" height="30" rx="6" fill="#0f1f1a" stroke="#065f46"/>
+      <path d="M14 15 l6 6 l10 -12" fill="none" stroke="#34d399" stroke-width="2"/>
+      <rect x="40" y="12" width="90" height="6" rx="3" fill="#065f46"/>
+    </g>
+    <g transform="translate(0,40)">
+      <rect width="150" height="30" rx="6" fill="#0f1f1a" stroke="#065f46"/>
+      <path d="M14 15 l6 6 l10 -12" fill="none" stroke="#34d399" stroke-width="2"/>
+      <rect x="40" y="12" width="78" height="6" rx="3" fill="#065f46"/>
+    </g>
+    <g transform="translate(0,80)">
+      <rect width="150" height="30" rx="6" fill="#0f1f1a" stroke="#065f46"/>
+      <path d="M14 15 l6 6 l10 -12" fill="none" stroke="#34d399" stroke-width="2"/>
+      <rect x="40" y="12" width="96" height="6" rx="3" fill="#065f46"/>
+    </g>
+    <g transform="translate(0,120)">
+      <rect width="150" height="30" rx="6" fill="#0f1f1a" stroke="#065f46"/>
+      <path d="M14 15 l6 6 l10 -12" fill="none" stroke="#34d399" stroke-width="2"/>
+      <rect x="40" y="12" width="70" height="6" rx="3" fill="#065f46"/>
+    </g>
+  </g>
+
+  <!-- caption -->
+  <text x="40" y="452" fill="#94a3b8" font-size="19" font-weight="700">Da workflow fragile a codice robusto</text>
+</svg>
