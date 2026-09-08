@@ -110,7 +110,7 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
   project: Project; isDark: boolean; primary: string; textMain: string; textMuted: string; onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog"
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" role="dialog"
       style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
       <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
         style={{ backgroundColor: isDark ? '#0f172a' : '#fafaf9', border: `1px solid ${isDark ? 'rgba(56,189,248,0.15)' : 'rgba(245,158,11,0.2)'}` }}
@@ -143,7 +143,7 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
         </div>
       </div>
       <button onClick={onClose} aria-label="Chiudi"
-        className="fixed top-3 right-3 z-[60] w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
+        className="fixed top-3 right-3 z-[210] w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
         style={{ backgroundColor: 'rgba(0,0,0,0.65)', color: '#fff', backdropFilter: 'blur(4px)' }}>
         <X size={20} />
       </button>
