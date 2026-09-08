@@ -118,8 +118,6 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
         <div className="relative h-48 overflow-hidden rounded-t-3xl">
           <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2))' }} />
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}><X size={16} /></button>
           <div className="absolute bottom-6 left-6 right-6">
             <div className="flex flex-wrap gap-2 mb-3">
               {project.tags.map(tag => (
@@ -144,6 +142,11 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
           </div>
         </div>
       </div>
+      <button onClick={onClose} aria-label="Chiudi"
+        className="fixed top-3 right-3 z-[60] w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
+        style={{ backgroundColor: 'rgba(0,0,0,0.65)', color: '#fff', backdropFilter: 'blur(4px)' }}>
+        <X size={20} />
+      </button>
     </div>
   );
 }
@@ -213,7 +216,7 @@ function ProjectCard({ project, hoveredId, onHover, isDark, primary, textMain, t
       onClick={onClick}
     >
       <div className="relative h-52 overflow-hidden rounded-t-2xl">
-        <img src={project.image} alt={project.title} className="w-full h-full object-cover transition-all duration-500"
+        <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover transition-all duration-500"
           style={{ filter: isHovered ? 'brightness(1)' : 'brightness(0.95)', transition: 'all 0.5s ease' }} />
         <div className="absolute inset-0" style={{ background: imgGradient }} />
         {isHovered && (
