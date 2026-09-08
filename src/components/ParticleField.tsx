@@ -10,7 +10,11 @@ export default function ParticleField({ isDark }: { isDark: boolean }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Su mobile (o con motion ridotto) NON animiamo: un rAF a tutto schermo satura la CPU
+    // del telefono e blocca i tocchi. Disegniamo un fotogramma statico e basta.
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    const still = reduced || isMobile;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = 0, h = 0;
 
@@ -52,7 +56,7 @@ export default function ParticleField({ isDark }: { isDark: boolean }) {
         }
       }
       for (const d of dots) {
-        if (!reduced) {
+        if (!still) {
           d.x += d.vx; d.y += d.vy;
           if (d.x < 0) d.x = w; else if (d.x > w) d.x = 0;
           if (d.y < 0) d.y = h; else if (d.y > h) d.y = 0;
@@ -66,9 +70,9 @@ export default function ParticleField({ isDark }: { isDark: boolean }) {
 
     let raf = 0;
     const loop = () => { draw(); raf = requestAnimationFrame(loop); };
-    if (reduced) draw(); else loop();
+    if (still) draw(); else loop();
 
-    const onResize = () => { resize(); };
+    const onResize = () => { resize(); if (still) draw(); };
     window.addEventListener('resize', onResize);
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); };
   }, [isDark]);
