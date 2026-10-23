@@ -1,4 +1,4 @@
-import { Project, Experience, Skill, Service } from './types';
+import { Project, Experience, SkillGroup, Service } from './types';
 
 export const PROFILE = {
   name: 'Desirèe Reale',
@@ -121,6 +121,63 @@ export const PROJECTS: Project[] = [
   }
 ];
 
+export const PERSONAL_PROJECTS: Project[] = [
+  {
+    id: 'studymap',
+    title: 'StudyMap',
+    description: 'App web installabile (PWA) per studenti universitari: carichi appunti, PDF o foto e l\'AI genera mappe concettuali, flashcard, quiz e riassunti, con una chat che risponde sul documento.',
+    image: '/card9.svg',
+    tags: ['In Beta', 'PWA', 'AI per lo studio'],
+    tech: ['Next.js', 'TypeScript', 'Supabase', 'LLM', 'Vercel'],
+    link: 'https://aistudymap.vercel.app',
+    features: [
+      'Mappe concettuali modificabili generate dall\'AI',
+      'Flashcard con ripetizione dilazionata e quiz',
+      'Chat con il documento e riferimenti alle pagine',
+      'Trascrizione di PDF scansionati e foto di appunti'
+    ],
+    problem: 'Preparare un esame vuol dire trasformare a mano dispense, slide e appunti in schemi, domande e ripassi: lavoro lungo che toglie tempo allo studio vero.',
+    solution: 'Lo studente carica il materiale e l\'AI, in background, ne ricava mappa, flashcard, quiz e riassunto. Fallback automatico tra modelli, quote e limiti per piano lato server, sicurezza a livello di riga su tutti i dati e test end-to-end.',
+    whyInteresting: 'Online in beta: dal documento al materiale di ripasso in pochi minuti, da qualsiasi dispositivo.'
+  },
+  {
+    id: 'summarize-extension',
+    title: 'Riassumi Pagina AI',
+    description: 'Estensione Chrome che riassume con un clic la pagina web o il PDF che stai leggendo, usando modelli gratuiti (Gemini, Groq, OpenRouter) o in locale con Ollama.',
+    image: '/card7.svg',
+    tags: ['Chrome Extension', 'Multi-Provider', 'Privacy'],
+    tech: ['JavaScript', 'Manifest V3', 'pdf.js', 'LLM'],
+    link: '#',
+    features: [
+      'Riassunto di pagine web e PDF',
+      'Sei provider, anche gratuiti o in locale',
+      'Chiave API salvata solo nel browser',
+      'Richiesta nel service worker, sopravvive alla chiusura del popup'
+    ],
+    problem: 'Articoli lunghi e PDF richiedono tempo per capire se valgono la lettura, e gli strumenti di riassunto spesso sono a pagamento o mandano i dati a servizi terzi.',
+    solution: 'L\'estensione estrae il testo della pagina o del PDF e lo invia al modello scelto dall\'utente, con la sua chiave salvata in locale. Supporta provider gratuiti e Ollama per lavorare completamente offline.',
+    whyInteresting: 'Un riassunto in un clic, gratis e con il controllo totale su dove finiscono i dati.'
+  },
+  {
+    id: 'github-radar',
+    title: 'GitHub Radar',
+    description: 'Script che legge i repository di tendenza su GitHub e chiede a un LLM di valutarli in base al mio profilo, con voto, riassunto e idee di progetti da costruirci sopra.',
+    image: '/card8.svg',
+    tags: ['In Sviluppo', 'LLM Scoring', 'Automazione Personale'],
+    tech: ['Python', 'OpenRouter', 'GitHub API'],
+    link: '#',
+    features: [
+      'Lettura dei trending di GitHub',
+      'Valutazione personalizzata con un LLM',
+      'Idee concrete di progetti per ogni repo',
+      'Report Markdown giornaliero, solo libreria standard'
+    ],
+    problem: 'Ogni giorno su GitHub escono decine di progetti interessanti, ma scorrerli tutti e capire quali valga la pena provare richiede troppo tempo.',
+    solution: 'Lo script scarica i trending, legge il README di ogni repository e chiede a un modello economico un JSON con voto, riassunto, difficoltà e idee, calibrato su un profilo di interessi. Il risultato è un report ordinato per voto.',
+    whyInteresting: 'Ancora in lavorazione: un radar personale che filtra il rumore e propone solo quello che fa per me.'
+  }
+];
+
 export const SERVICES: Service[] = [
   {
     icon: 'FileText',
@@ -179,30 +236,10 @@ export const EXPERIENCES: Experience[] = [
   }
 ];
 
-export const SKILLS: Skill[] = [
-  // AI & LLM
-  { name: 'Python', icon: 'Code', category: 'core' },
-  { name: 'RAG', icon: 'Database', category: 'core' },
-  { name: 'LLM Agents', icon: 'Cpu', category: 'core' },
-  { name: 'Prompt Engineering', icon: 'MessageSquare', category: 'core' },
-  { name: 'Local LLM', icon: 'Brain', category: 'core' },
-  // Workflow & Automation
-  { name: 'n8n', icon: 'Network', category: 'core' },
-  { name: 'LangFlow', icon: 'GitBranch', category: 'core' },
-  { name: 'API Integration', icon: 'Plug', category: 'core' },
-  // Programming
-  { name: 'Java', icon: 'Code', category: 'core' },
-  { name: 'JavaScript', icon: 'Code', category: 'core' },
-  { name: 'SQL', icon: 'Database', category: 'core' },
-  { name: 'MongoDB', icon: 'Database', category: 'core' },
-  { name: 'MySQL', icon: 'Database', category: 'tools' },
-  { name: 'Spring', icon: 'Box', category: 'tools' },
-  // Industrial
-  { name: 'SCADA', icon: 'Monitor', category: 'tools' },
-  { name: 'PLC', icon: 'Cpu', category: 'tools' },
-  { name: 'HMI', icon: 'LayoutTemplate', category: 'tools' },
-  // Other
-  { name: 'Docker', icon: 'Container', category: 'tools' },
-  { name: 'MATLAB', icon: 'BarChart3', category: 'tools' },
-  { name: 'C', icon: 'Terminal', category: 'tools' },
+export const SKILL_GROUPS: SkillGroup[] = [
+  { title: 'AI & LLM', items: ['Python', 'LLM Agents', 'RAG', 'Prompt Engineering', 'Local LLM', 'MCP'] },
+  { title: 'Automazione', items: ['n8n', 'LangFlow', 'API Integration', 'Docker'] },
+  { title: 'Sviluppo', items: ['Java', 'Spring', 'JavaScript', 'TypeScript', 'React', 'C', 'MATLAB'] },
+  { title: 'Dati', items: ['SQL', 'PostgreSQL', 'MySQL', 'MongoDB', 'Supabase'] },
+  { title: 'Industriale', items: ['SCADA', 'PLC', 'HMI', 'IoT'] },
 ];

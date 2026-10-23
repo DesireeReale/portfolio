@@ -21,10 +21,9 @@ export interface Experience {
   tags: string[];
 }
 
-export interface Skill {
-  name: string;
-  icon: string;
-  category: 'core' | 'tools';
+export interface SkillGroup {
+  title: string;
+  items: string[];
 }
 
 export interface Service {

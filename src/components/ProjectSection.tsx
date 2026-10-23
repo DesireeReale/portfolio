@@ -6,12 +6,24 @@ import { ChevronRight, Eye, X, AlertCircle, Lightbulb, TrendingUp } from 'lucide
 
 interface ProjectSectionProps {
   isDark: boolean;
+  projects?: Project[];
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  showCta?: boolean;
 }
 
-export default function ProjectSection({ isDark }: ProjectSectionProps) {
+export default function ProjectSection({
+  isDark,
+  projects = PROJECTS,
+  id = 'projects',
+  title = 'Progetti',
+  subtitle = 'Sistemi AI e pipeline di automazione che ho progettato e realizzato.',
+  showCta = true,
+}: ProjectSectionProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selectedProject = PROJECTS.find(p => p.id === selectedId) || null;
+  const selectedProject = projects.find(p => p.id === selectedId) || null;
 
   const closeModal = useCallback(() => {
     setSelectedId(null);
@@ -36,19 +48,19 @@ export default function ProjectSection({ isDark }: ProjectSectionProps) {
     : 'linear-gradient(to top, rgba(250,250,249,0.6) 0%, transparent 50%)';
 
   return (
-    <section id="projects" className="py-16 space-y-16 relative">
+    <section id={id} className="py-16 space-y-16 relative">
       <div className="flex flex-col gap-4">
-        <SectionLabel label="Progetti" isDark={isDark} />
+        <SectionLabel label={title} isDark={isDark} />
         <h2 className="text-4xl md:text-5xl font-black tracking-tight" style={{ color: textMain }}>
-          Progetti
+          {title}
         </h2>
         <p className="text-lg max-w-2xl" style={{ color: textMuted }}>
-          Sistemi AI e pipeline di automazione che ho progettato e realizzato.
+          {subtitle}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PROJECTS.map((project, idx) => (
+        {projects.map((project, idx) => (
           <ProjectCard
             key={project.id}
             project={project}
@@ -70,7 +82,7 @@ export default function ProjectSection({ isDark }: ProjectSectionProps) {
         ))}
       </div>
 
-      <div className="rounded-2xl p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group"
+      {showCta && <div className="rounded-2xl p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group"
         style={{
           backgroundColor: cardBg,
           backdropFilter: 'blur(24px)',
@@ -97,7 +109,7 @@ export default function ProjectSection({ isDark }: ProjectSectionProps) {
             Contattami
           </span>
         </a>
-      </div>
+      </div>}
 
       {selectedProject && (
         <ProjectDetailModal project={selectedProject} isDark={isDark} primary={primary} textMain={textMain} textMuted={textMuted} onClose={closeModal} />
@@ -116,13 +128,13 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
         style={{ backgroundColor: isDark ? '#0f172a' : '#fafaf9', border: `1px solid ${isDark ? 'rgba(56,189,248,0.15)' : 'rgba(245,158,11,0.2)'}` }}
         onClick={(e) => e.stopPropagation()}>
         <div className="relative h-48 overflow-hidden rounded-t-3xl">
-          <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+          <img src={project.image} alt={project.title} className="w-full h-full object-cover object-top" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2))' }} />
           <div className="absolute bottom-6 left-6 right-6">
             <div className="flex flex-wrap gap-2 mb-3">
               {project.tags.map(tag => (
                 <span key={tag} className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold"
-                  style={{ backgroundColor: `${primary}/20`, color: primary }}>{tag}</span>
+                  style={{ backgroundColor: `${primary}33`, color: primary }}>{tag}</span>
               ))}
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: '#fff' }}>{project.title}</h2>
@@ -140,6 +152,13 @@ function ProjectDetailModal({ project, isDark, primary, textMain, textMuted, onC
                 style={{ color: textMuted, border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` }}>{t}</span>
             ))}
           </div>
+          {project.link && project.link !== '#' && (
+            <a href={project.link} target="_blank" rel="noopener noreferrer"
+              className="inline-block px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest"
+              style={{ backgroundColor: primary, color: 'black' }}>
+              Visita il progetto
+            </a>
+          )}
         </div>
       </div>
       <button onClick={onClose} aria-label="Chiudi"
@@ -156,15 +175,15 @@ function DetailBlock({ icon, label, title, content, isDark, primary, textMain, t
 }) {
   return (
     <div className="space-y-3 p-4 rounded-2xl" style={{
-      backgroundColor: highlight ? `${primary}/8` : (isDark ? 'rgba(30,41,59,0.4)' : 'rgba(0,0,0,0.02)'),
-      border: `1px solid ${highlight ? `${primary}/15` : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)')}`
+      backgroundColor: highlight ? `${primary}14` : (isDark ? 'rgba(30,41,59,0.4)' : 'rgba(0,0,0,0.02)'),
+      border: `1px solid ${highlight ? `${primary}26` : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)')}`
     }}>
       <div className="flex items-center gap-2">
         <span style={{ color: primary }}>{icon}</span>
-        <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: `${primary}/60` }}>{label}</span>
+        <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: `${primary}99` }}>{label}</span>
       </div>
       <h3 className="text-sm font-bold" style={{ color: textMain }}>{title}</h3>
-      <p className="text-xs leading-relaxed" style={{ color: `${textMuted}/80` }}>{content}</p>
+      <p className="text-xs leading-relaxed" style={{ color: `${textMuted}cc` }}>{content}</p>
     </div>
   );
 }
@@ -216,13 +235,13 @@ function ProjectCard({ project, hoveredId, onHover, isDark, primary, textMain, t
       onClick={onClick}
     >
       <div className="relative h-52 overflow-hidden rounded-t-2xl">
-        <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover transition-all duration-500"
+        <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover object-top transition-all duration-500"
           style={{ filter: isHovered ? 'brightness(1)' : 'brightness(0.95)', transition: 'all 0.5s ease' }} />
         <div className="absolute inset-0" style={{ background: imgGradient }} />
         {isHovered && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-12 h-12 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${primary}/20`, border: `1px solid ${primary}/40` }}>
+              style={{ backgroundColor: `${primary}33`, border: `1px solid ${primary}66` }}>
               <Eye size={20} style={{ color: primary }} />
             </div>
           </div>
@@ -232,17 +251,17 @@ function ProjectCard({ project, hoveredId, onHover, isDark, primary, textMain, t
         <div className="flex flex-wrap gap-1.5">
           {project.tags.map((tag) => (
             <span key={tag} className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold"
-              style={{ backgroundColor: `${primary}/10`, color: primary }}>{tag}</span>
+              style={{ backgroundColor: `${primary}1a`, color: primary }}>{tag}</span>
           ))}
         </div>
         <h3 className="text-lg font-bold tracking-tight" style={{ color: textMain }}>{project.title}</h3>
-        <p className="text-sm leading-relaxed line-clamp-3" style={{ color: `${textMuted}/80` }}>{project.description}</p>
+        <p className="text-sm leading-relaxed line-clamp-3" style={{ color: `${textMuted}cc` }}>{project.description}</p>
         {project.features && project.features.length > 0 && (
           <ul className="space-y-1 pt-1">
             {project.features.slice(0, 3).map((feature) => (
               <li key={feature} className="text-xs flex items-start gap-2">
                 <ChevronRight size={12} className="mt-0.5 shrink-0" style={{ color: primary }} />
-                <span style={{ color: `${textMuted}/70` }}>{feature}</span>
+                <span style={{ color: `${textMuted}b3` }}>{feature}</span>
               </li>
             ))}
           </ul>
@@ -250,7 +269,7 @@ function ProjectCard({ project, hoveredId, onHover, isDark, primary, textMain, t
         <div className="flex flex-wrap gap-1.5 pt-2">
           {project.tech.map((t) => (
             <span key={t} className="text-[9px] font-mono px-1.5 py-0.5 rounded"
-              style={{ color: `${textMuted}/60`, border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>{t}</span>
+              style={{ color: `${textMuted}99`, border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>{t}</span>
           ))}
         </div>
       </div>

@@ -48,7 +48,7 @@ export default function ExperienceSection({ isDark }: ExperienceSectionProps) {
                 <Calendar size={14} />
                 {exp.period}
               </div>
-              <div className="inline-flex items-center gap-2 text-sm font-bold whitespace-nowrap" style={{ color: `${textMuted}/60` }}>
+              <div className="inline-flex items-center gap-2 text-sm font-bold whitespace-nowrap" style={{ color: `${textMuted}99` }}>
                 <Building2 size={14} />
                 {exp.company}
               </div>

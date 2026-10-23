@@ -40,14 +40,14 @@ export default function Hero({ isDark }: HeroProps) {
       <div
         className="absolute top-0 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none blur-[120px]"
         style={{
-          backgroundColor: `${primary}/15`,
+          backgroundColor: `${primary}26`,
           animation: 'pulseBlur 12s ease-in-out infinite'
         }}
       />
       <div
         className="absolute -bottom-20 -left-40 w-[500px] h-[500px] rounded-full pointer-events-none blur-[100px]"
         style={{
-          backgroundColor: `${primaryTint}/15`,
+          backgroundColor: `${primaryTint}26`,
           animation: 'pulseBlurReverse 14s ease-in-out infinite 2s'
         }}
       />
@@ -91,8 +91,8 @@ function HeroContent({
         <div
           className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full"
           style={{
-            backgroundColor: `${primary}/10`,
-            borderColor: `${primary}/20`,
+            backgroundColor: `${primary}1a`,
+            borderColor: `${primary}33`,
             animation: 'fadeIn 0.5s ease-out both'
           }}
         >
@@ -126,7 +126,7 @@ function HeroContent({
         {/* Title */}
         <p
           className="text-xl md:text-2xl font-semibold"
-          style={{ color: `${textMuted}/60`, animation: 'slideUp 0.7s ease-out 0.15s both' }}
+          style={{ color: `${textMuted}99`, animation: 'slideUp 0.7s ease-out 0.15s both' }}
         >
           {PROFILE.title}
         </p>
@@ -134,7 +134,7 @@ function HeroContent({
         {/* Bio */}
         <p
           className="text-lg leading-relaxed max-w-xl"
-          style={{ color: `${textMuted}/80`, animation: 'slideUp 0.6s ease-out 0.3s both' }}
+          style={{ color: `${textMuted}cc`, animation: 'slideUp 0.6s ease-out 0.3s both' }}
         >
           {PROFILE.bio}
         </p>
@@ -188,7 +188,7 @@ function FloatingTerminalCard({
     >
       <div
         className="glacier-glass-elevated p-6 rounded-2xl"
-        style={{ borderColor: `${primary}/10`, animation: 'float 4s ease-in-out infinite' }}
+        style={{ borderColor: `${primary}1a`, animation: 'float 4s ease-in-out infinite' }}
       >
         {/* Terminal Header */}
         <div className="flex items-center gap-2 mb-5">
@@ -228,7 +228,7 @@ function FloatingTerminalCard({
                 key={skill}
                 className="text-xs px-2 py-0.5 rounded"
                 style={{
-                  backgroundColor: `${primary}/10`,
+                  backgroundColor: `${primary}1a`,
                   color: primary
                 }}
               >
@@ -287,11 +287,11 @@ function StatBox({
           ? { backgroundColor: isDark ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.9)', backdropFilter: 'blur(24px)', border: `1px solid ${isDark ? 'rgba(56,189,248,0.15)' : 'rgba(245,158,11,0.25)'}` }
           : { backgroundColor: isDark ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)', border: `1px solid ${isDark ? 'rgba(56,189,248,0.08)' : 'rgba(245,158,11,0.1)'}` }
         ),
-        hover: { borderColor: `${primary}/20` }
+        hover: { borderColor: `${primary}33` }
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = `${primary}/20`;
+        (e.currentTarget as HTMLDivElement).style.borderColor = `${primary}33`;
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';

@@ -20,6 +20,7 @@ export default function Navbar({ isDark, toggleTheme }: NavbarProps) {
   const navLinks = [
 { name: 'Servizi', href: '#services' },
 { name: 'Progetti', href: '#projects' },
+{ name: 'Personali', href: '#personal-projects' },
 { name: 'Esperienza', href: '#experience' },
 { name: 'Competenze', href: '#skills' },
   ];

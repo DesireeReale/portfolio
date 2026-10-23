@@ -7,6 +7,7 @@ import ExperienceSection from './components/ExperienceSection';
 import TechStack from './components/TechStack';
 import Footer from './components/Footer';
 import ParticleField from './components/ParticleField';
+import { PERSONAL_PROJECTS } from './constants';
 
 export default function App() {
   const [isDark, setIsDark] = useState(true);
@@ -22,6 +23,14 @@ export default function App() {
         <Hero isDark={isDark} />
         <ServicesSection isDark={isDark} />
         <ProjectSection isDark={isDark} />
+        <ProjectSection
+          isDark={isDark}
+          projects={PERSONAL_PROJECTS}
+          id="personal-projects"
+          title="Progetti personali"
+          subtitle="Strumenti che costruisco nel tempo libero, per imparare e per uso quotidiano."
+          showCta={false}
+        />
         <ExperienceSection isDark={isDark} />
         <TechStack isDark={isDark} />
       </main>
