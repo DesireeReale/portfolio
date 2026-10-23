@@ -1,7 +1,7 @@
-import { FileText, LineChart, Bot, Workflow, LucideIcon } from 'lucide-react';
+import { FileText, LineChart, Bot, Workflow, MessageSquare, ShieldCheck, LucideIcon } from 'lucide-react';
 import { SERVICES } from '../constants';
 
-const ICONS: Record<string, LucideIcon> = { FileText, LineChart, Bot, Workflow };
+const ICONS: Record<string, LucideIcon> = { FileText, LineChart, Bot, Workflow, MessageSquare, ShieldCheck };
 
 export default function ServicesSection({ isDark }: { isDark: boolean }) {
   const primary = isDark ? '#38bdf8' : '#f59e0b';
@@ -21,11 +21,11 @@ export default function ServicesSection({ isDark }: { isDark: boolean }) {
           Cosa posso fare per la tua azienda
         </h2>
         <p className="text-lg max-w-2xl" style={{ color: textMuted }}>
-          Automatizzo processi manuali con l'AI: sistemi che lavorano da soli, in produzione, integrati con quello che usi già.
+          Porto l'AI generativa nei processi aziendali: agenti, assistenti e automazioni che lavorano in produzione, integrati con gli strumenti che usi già.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {SERVICES.map((s) => {
           const Icon = ICONS[s.icon] ?? FileText;
           return (

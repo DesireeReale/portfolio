@@ -180,24 +180,34 @@ export const PERSONAL_PROJECTS: Project[] = [
 
 export const SERVICES: Service[] = [
   {
-    icon: 'FileText',
-    title: 'Automazione documentale',
-    description: 'Classificazione, estrazione dati e archiviazione dei documenti in automatico. Meno lavoro manuale e informazioni sempre reperibili.'
-  },
-  {
-    icon: 'LineChart',
-    title: 'Pipeline dati e reportistica',
-    description: 'Dai dati grezzi al report pronto, senza passaggi manuali: normalizzazione da più sorgenti e generazione programmata.'
-  },
-  {
     icon: 'Bot',
-    title: 'Agenti e assistenti AI',
-    description: 'Agenti LLM e sistemi RAG su misura, che rispondono sulla tua base di conoscenza e agiscono con strumenti dedicati.'
+    title: 'Agenti AI operativi',
+    description: 'Agenti che non si limitano a rispondere ma agiscono: leggono email e richieste, consultano i gestionali, aggiornano dati e completano attività ripetitive, con controllo umano dove serve.'
+  },
+  {
+    icon: 'MessageSquare',
+    title: 'Assistente sui documenti aziendali',
+    description: 'Un chatbot che risponde su manuali, procedure, contratti e archivi interni, citando le fonti. Per il supporto clienti o per far trovare subito le informazioni al personale.'
+  },
+  {
+    icon: 'FileText',
+    title: 'Estrazione dati dai documenti',
+    description: 'Fatture, DDT, contratti, moduli e PDF scansionati letti dall\'AI: i dati finiscono direttamente nel gestionale o nel database, senza copiarli a mano.'
   },
   {
     icon: 'Workflow',
-    title: 'Integrazione e bonifica',
-    description: 'Integrazione dell\'AI nei sistemi che già usi e sostituzione di workflow fragili con codice affidabile.'
+    title: 'Automazione dei processi',
+    description: 'Workflow con AI integrata che collegano gli strumenti che già usi (email, CRM, ERP, Drive, Teams, Telegram) ed eliminano i passaggi manuali tra un sistema e l\'altro.'
+  },
+  {
+    icon: 'LineChart',
+    title: 'Report e analisi automatiche',
+    description: 'Dai dati grezzi a report e presentazioni pronti, generati e inviati in automatico. E la possibilità di interrogare i dati aziendali in linguaggio naturale.'
+  },
+  {
+    icon: 'ShieldCheck',
+    title: 'AI privata e on-premise',
+    description: 'Modelli open-source installati sui tuoi server, per usare l\'AI senza far uscire i dati dall\'azienda. Attenzione a GDPR e AI Act fin dalla progettazione.'
   }
 ];
 
