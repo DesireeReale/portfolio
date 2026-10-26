@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
@@ -104,6 +105,9 @@ JUNK_ATTR = re.compile(r'subscri|newsletter|promo|related|share|sharing|comment|
 CTA_LINE = re.compile(r'\b(subscribe|sign up|newsletter|follow us|follow topics|read more|abbonati|iscriviti|ad-free)\b'
                       r'|\bsubscribers? (get|can|have|receive)\b|^(image|photo|illustration|credit)s?( by)?:', re.I)
 CTA_MAX = 300
+IMAGE_TRIES = 8
+NOT_PICTURE = re.compile(r'shields\.io|badgen|badge|travis-ci|codecov|/workflows/|star-history|contrib\.rocks|logo|icon'
+                         r'|avatar|sponsor|favicon|emoji|\.svg(?:$|\?)', re.I)
 END_MARKER = re.compile(r'(most popular|popular|trending|related( articles| stories)?|latest in .{1,30}|more from .{1,40}'
                         r'|read next|topics|recommended|you might also like|leggi anche)', re.I)
 
@@ -267,13 +271,51 @@ def readme_text(md, limit=REPO_CHARS):
     return '\n\n'.join(out[n] for n in sorted(out))
 
 
+def readme_image(md, base):
+    """Return the first README image at least MIN_IMAGE_WIDTH wide, skipping badges and logos."""
+    found = re.findall(r'!\[[^\]]*\]\(\s*<?([^)\s>]+)', md) + re.findall(r'<img[^>]+src=["\']([^"\']+)', md, re.I)
+    order = sorted(found, key=lambda u: md.find(u))
+    urls = [urllib.parse.urljoin(base, src) for src in dict.fromkeys(order)]
+    for url in [u for u in urls if u.startswith('http') and not NOT_PICTURE.search(u)][:IMAGE_TRIES]:
+        url = re.sub(r'^https://github\.com/([^/]+/[^/]+)/blob/', r'https://raw.githubusercontent.com/\1/', url)
+        size = common.remote_image_size(url)
+        if size and size[1] >= common.MIN_IMAGE_WIDTH:
+            return url
+    return None
+
+
+def og_image(page, base):
+    m = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*>', page, re.I)
+    src = m and re.search(r'content=["\']([^"\']+)', m.group(0))
+    url = urllib.parse.urljoin(base, html.unescape(src.group(1))) if src else None
+    size = url and common.remote_image_size(url)
+    return url if size and size[1] >= common.MIN_IMAGE_WIDTH else None
+
+
+def credit(item, url):
+    return {'url': url, 'credit': f"{item['source']}: {item['title']}" if item.get('kind') == 'repo' else item['source'],
+            'creditUrl': item['link']} if url else None
+
+
 def source_text(item):
+    """Return (text for the model, image dict or None)."""
     if item.get('readme'):
-        return f"{item['title']}: {item['summary']}\n\n{readme_text(card_text(fetch(item['readme'])))}"
+        md = card_text(fetch(item['readme']))
+        base = item['link'] + '/resolve/main/'
+        url = readme_image(md, base)
+        if not url and '/spaces/' in item['link']:
+            try:
+                url = og_image(fetch(item['link']), item['link'])
+            except Exception:
+                url = None
+        return f"{item['title']}: {item['summary']}\n\n{readme_text(md)}", credit(item, url)
     if item.get('kind') == 'repo':
-        readme = fetch(f"https://api.github.com/repos/{item['title']}/readme", {'Accept': 'application/vnd.github.raw'})
-        return f"{item['title']}: {item['summary']}\n\n{readme_text(readme)}"
-    return html_text(fetch(item['link']))[:SOURCE_CHARS]
+        md = fetch(f"https://api.github.com/repos/{item['title']}/readme", {'Accept': 'application/vnd.github.raw'})
+        url = readme_image(md, f"https://raw.githubusercontent.com/{item['title']}/HEAD/")
+        return f"{item['title']}: {item['summary']}\n\n{readme_text(md)}", credit(item, url)
+    page = fetch(item['link'])
+    url = og_image(page, item['link']) if item.get('images') == 'og' else None
+    return html_text(page)[:SOURCE_CHARS], credit(item, url)
 
 
 def since(now, last_run):
@@ -296,7 +338,7 @@ def collect(start, now, seen):
             elif tipo.startswith('hf-'):
                 items += parse_hf(page, f['name'], now, tipo[3:])
             else:
-                items += parse_feed(page, f['name'])
+                items += [dict(i, images=f.get('immagini')) for i in parse_feed(page, f['name'])]
         except Exception as e:
             print(f"feed {f['name']} non letto: {e}", file=sys.stderr)
     fresh = {i['link']: i for i in items
@@ -459,7 +501,7 @@ def run(now=None):
     written, failed = [], []
     for item in retry + (picks or []):
         try:
-            text = source_text(item)
+            text, image = source_text(item)
             if len(text) < MIN_SOURCE:
                 print(f"fonte troppo corta per {item['link']} ({len(text)} caratteri), notizia saltata", file=sys.stderr)
                 written.append(item['link'])
@@ -472,7 +514,7 @@ def run(now=None):
         written.append(item['link'])
         slug = common.slugify(draft['title'], taken)
         taken.add(slug)
-        md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']})
+        md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']}, image)
         (common.drafts_dir() / f'{slug}.md').write_text(md, encoding='utf-8')
         pending[slug] = {'messages': try_send(slug, md, problems), 'day': now.date().isoformat(), 'problems': problems}
         common.write_json(pending_path, pending)

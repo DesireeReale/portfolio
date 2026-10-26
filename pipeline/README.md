@@ -8,6 +8,10 @@ I pulsanti non danno una risposta subito: la scelta viene letta dal giro del mat
 
 Se rispondi (con "Rispondi") al messaggio di una bozza, il tuo testo finisce in cima all'articolo come nota personale. Rispondi prima di premere Approva oppure entro la mattina dopo.
 
+Immagini: per i progetti GitHub e Hugging Face la bozza prende la prima immagine vera del README o della scheda (niente badge né loghi; per gli Spaces senza immagini, l'anteprima della pagina), per i blog ufficiali segnati con `"immagini": "og"` in `feeds.json` l'immagine di anteprima della pagina; per le testate giornalistiche nessuna immagine, e il blog mostra una copertina col titolo. La sera salva solo l'indirizzo e il credito; la mattina, all'approvazione, l'immagine viene scaricata in `public/blog/<slug>/`. Sotto i 600px di larghezza si usa la copertina.
+
+Anteprima delle bozze: `python pipeline/preview.py CARTELLA [--skip SLUG ...]` costruisce in `CARTELLA` (fuori dal repository) il blog come se tutte le bozze fossero approvate, con i problemi da controllare in cima a ogni articolo, e stampa l'elenco dei file da pubblicare come artifact.
+
 Le bozze marcate **DA CONTROLLARE** hanno problemi di stile rimasti dopo la riscrittura, oppure numeri e nomi che non compaiono nella fonte: leggi l'elenco in cima al messaggio prima di approvare.
 
 ## Attivazione

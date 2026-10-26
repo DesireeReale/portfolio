@@ -1,8 +1,8 @@
 [
-  {"name": "OpenAI", "url": "https://openai.com/news/rss.xml"},
-  {"name": "Google", "url": "https://blog.google/technology/ai/rss/"},
-  {"name": "Google DeepMind", "url": "https://deepmind.google/blog/rss.xml"},
-  {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml"},
+  {"name": "OpenAI", "url": "https://openai.com/news/rss.xml", "immagini": "og"},
+  {"name": "Google", "url": "https://blog.google/technology/ai/rss/", "immagini": "og"},
+  {"name": "Google DeepMind", "url": "https://deepmind.google/blog/rss.xml", "immagini": "og"},
+  {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml", "immagini": "og"},
   {"name": "The Verge", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"},
   {"name": "TechCrunch", "url": "https://techcrunch.com/category/artificial-intelligence/feed/"},
   {"name": "Ars Technica", "url": "https://arstechnica.com/ai/feed/"},

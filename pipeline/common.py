@@ -141,9 +141,88 @@ def q(s):
     return json.dumps(s, ensure_ascii=False)
 
 
-def render(d, date, source):
+MIN_IMAGE_WIDTH = 600
+MAX_IMAGE_BYTES = 8_000_000
+IMAGE_TYPES = {'png': 'png', 'gif': 'gif', 'jpeg': 'jpg', 'webp': 'webp'}
+
+
+def image_size(data):
+    """Return (kind, width, height) from the first bytes of a PNG, GIF, JPEG or WebP, else None."""
+    if data[:8] == b'\x89PNG\r\n\x1a\n' and len(data) >= 24:
+        return 'png', int.from_bytes(data[16:20], 'big'), int.from_bytes(data[20:24], 'big')
+    if data[:6] in (b'GIF87a', b'GIF89a') and len(data) >= 10:
+        return 'gif', int.from_bytes(data[6:8], 'little'), int.from_bytes(data[8:10], 'little')
+    if data[:4] == b'RIFF' and data[8:12] == b'WEBP' and len(data) >= 30:
+        chunk = data[12:16]
+        if chunk == b'VP8 ':
+            return 'webp', int.from_bytes(data[26:28], 'little') & 0x3FFF, int.from_bytes(data[28:30], 'little') & 0x3FFF
+        if chunk == b'VP8L':
+            b = int.from_bytes(data[21:25], 'little')
+            return 'webp', (b & 0x3FFF) + 1, ((b >> 14) & 0x3FFF) + 1
+        if chunk == b'VP8X':
+            return 'webp', int.from_bytes(data[24:27], 'little') + 1, int.from_bytes(data[27:30], 'little') + 1
+    if data[:2] == b'\xff\xd8':
+        i = 2
+        while i + 9 < len(data):
+            if data[i] != 0xFF:
+                i += 1
+                continue
+            marker = data[i + 1]
+            if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+                i += 2
+                continue
+            if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                return 'jpeg', int.from_bytes(data[i + 7:i + 9], 'big'), int.from_bytes(data[i + 5:i + 7], 'big')
+            i += 2 + int.from_bytes(data[i + 2:i + 4], 'big')
+    return None
+
+
+def fetch_bytes(url, limit=None):
+    headers = {'User-Agent': 'Mozilla/5.0 (blog news bot)'}
+    if limit:
+        headers['Range'] = f'bytes=0-{limit - 1}'
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
+        return r.read(limit or MAX_IMAGE_BYTES + 1)
+
+
+def remote_image_size(url):
+    try:
+        return image_size(fetch_bytes(url, 131072))
+    except Exception:
+        return None
+
+
+def download_image(url, folder):
+    """Save url as folder/cover.<ext> when it is a wide enough image; return the file name or None."""
+    try:
+        data = fetch_bytes(url)
+    except Exception:
+        return None
+    info = image_size(data)
+    if not info or info[1] < MIN_IMAGE_WIDTH or len(data) > MAX_IMAGE_BYTES:
+        return None
+    folder.mkdir(parents=True, exist_ok=True)
+    name = f'cover.{IMAGE_TYPES[info[0]]}'
+    (folder / name).write_bytes(data)
+    return name
+
+
+def localize_image(md, slug, static_root):
+    """Download the draft's remote image to static_root/blog/<slug>/; drop the image fields if that fails."""
+    m = re.search(r'^image: (https?://\S+)$', md, re.M)
+    if not m:
+        return md
+    name = download_image(m.group(1), static_root / 'blog' / slug)
+    if name:
+        return md.replace(m.group(0), f'image: /blog/{slug}/{name}')
+    return re.sub(r'^image(?:Credit|CreditUrl)?: .*\n', '', md, flags=re.M)
+
+
+def render(d, date, source, image=None):
     lines = ['---', f"title: {q(d['title'])}", f"description: {q(d['description'])}", f'date: {date}',
              f"category: {d['category']}"]
+    if image:
+        lines += [f"image: {image['url']}", f"imageCredit: {q(image['credit'])}", f"imageCreditUrl: {image['creditUrl']}"]
     if d['forBusiness']:
         lines.append('forBusiness: true')
     lines.append('perTe:')

@@ -9,6 +9,9 @@
  *   description: Sottotitolo, usato anche come meta description
  *   date: 2026-10-26            (oppure 2026-10-26T07:00:00+01:00)
  *   category: intelligenza-artificiale
+ *   image: /blog/<slug>/cover.jpg (facoltativo, file in public/, largo almeno 600px; senza, copertina col titolo)
+ *   imageCredit: Fonte         (facoltativo, mostrato sotto l'immagine)
+ *   imageCreditUrl: https://...
  *   forBusiness: true           (facoltativo, mostra l'articolo nel blocco "Per la tua azienda")
  *   featured: true              (facoltativo, candidato ad apertura e "I più letti")
  *   verdict: meta               (facoltativo, si | no | meta, solo per funziona-davvero)
@@ -31,8 +34,10 @@ import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CONTENT = join(ROOT, 'content', 'blog');
-const DIST = join(ROOT, 'dist');
+const CONTENT = process.env.BLOG_CONTENT || join(ROOT, 'content', 'blog');
+const DIST = process.env.BLOG_DIST || join(ROOT, 'dist');
+const STATIC = process.env.BLOG_STATIC || join(ROOT, 'public');
+const MIN_IMAGE_WIDTH = 600;
 const SITE = 'https://desireereale.netlify.app';
 const AUTHOR = 'Desirèe Reale';
 const GITHUB = 'https://github.com/desireereale';
@@ -109,6 +114,7 @@ function loadArticles() {
         ...data,
         slug: f.replace(/\.md$/, ''),
         date,
+        image: localImage(data, f),
         perTe: [].concat(data.perTe ?? []),
         perAzienda: [].concat(data.perAzienda ?? []),
         sources,
@@ -125,18 +131,44 @@ const fullDate = (d) => fmt(d, { day: 'numeric', month: 'long', year: 'numeric' 
 const url = (a) => `/blog/${a.slug}/`;
 const catUrl = (c) => `/blog/categoria/${c}/`;
 
-const SVG = {
-  doc: '<svg viewBox="0 0 200 120"><rect x="40" y="14" width="120" height="92" rx="8" fill="var(--surface)" stroke="var(--line)"/><rect x="56" y="32" width="70" height="8" rx="4" fill="var(--accent)"/><rect x="56" y="50" width="88" height="6" rx="3" fill="var(--muted)" opacity=".5"/><rect x="56" y="64" width="80" height="6" rx="3" fill="var(--muted)" opacity=".5"/><rect x="56" y="78" width="60" height="6" rx="3" fill="var(--muted)" opacity=".5"/></svg>',
-  plus: '<svg viewBox="0 0 200 120"><circle cx="100" cy="60" r="34" fill="var(--accent-soft)"/><path d="M84 60h32M100 44v32" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/></svg>',
-  pair: '<svg viewBox="0 0 200 120"><rect x="50" y="30" width="44" height="60" rx="6" fill="var(--accent-soft)"/><rect x="106" y="30" width="44" height="60" rx="6" fill="var(--accent)"/></svg>',
-  line: '<svg viewBox="0 0 200 120"><path d="M40 84 80 50l28 20 52-40" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  check: '<svg viewBox="0 0 200 120"><rect x="56" y="24" width="88" height="72" rx="8" fill="none" stroke="var(--accent)" stroke-width="5"/><path d="M76 60l16 14 32-30" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/></svg>',
-};
-const CAT_SVG = {
-  'intelligenza-artificiale': 'doc', 'guide-e-tutorial': 'doc', 'app-e-strumenti': 'pair', 'ai-in-locale': 'plus',
-  'big-tech': 'pair', 'sicurezza': 'line', 'funziona-davvero': 'check', 'per-la-tua-azienda': 'line',
-};
-const thumb = (a) => `<div class="thumb" aria-hidden="true">${SVG[CAT_SVG[a.category]]}</div>`;
+function imageWidth(file) {
+  const b = readFileSync(file);
+  if (b.readUInt32BE(0) === 0x89504e47) return b.readUInt32BE(16);
+  if (b.toString('latin1', 0, 3) === 'GIF') return b.readUInt16LE(6);
+  if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') {
+    const chunk = b.toString('latin1', 12, 16);
+    if (chunk === 'VP8 ') return b.readUInt16LE(26) & 0x3fff;
+    if (chunk === 'VP8L') return (b.readUInt32LE(21) & 0x3fff) + 1;
+    if (chunk === 'VP8X') return b.readUIntLE(24, 3) + 1;
+  }
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    for (let i = 2; i + 9 < b.length;) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1];
+      if (m === 0xd8 || m === 0x01 || (m >= 0xd0 && m <= 0xd7)) { i += 2; continue; }
+      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return b.readUInt16BE(i + 7);
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+  }
+  return 0;
+}
+
+function localImage(a, f) {
+  if (!a.image) return null;
+  const file = join(STATIC, a.image);
+  if (!a.image.startsWith('/') || !existsSync(file)) {
+    console.warn(`${f}: immagine "${a.image}" non trovata in ${STATIC}, uso la copertina`);
+    return null;
+  }
+  return imageWidth(file) >= MIN_IMAGE_WIDTH ? a.image : null;
+}
+
+const cover = (a) => `<div class="thumb cover" aria-hidden="true"><span class="cat">${esc(CATEGORIES[a.category].name)}</span><b>${esc(a.title)}</b></div>`;
+const thumb = (a) => a.image ? `<div class="thumb"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : cover(a);
+const figure = (a) => a.image
+  ? `<figure class="figure"><img src="${esc(a.image)}" alt="">${a.imageCredit ? `<figcaption>Immagine: ${a.imageCreditUrl ? `<a href="${esc(a.imageCreditUrl)}" rel="noopener">${esc(a.imageCredit)}</a>` : esc(a.imageCredit)}</figcaption>` : ''}</figure>`
+  : cover(a);
+
 
 const CSS = `
 :root {
@@ -197,7 +229,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .lead h2 { font-size: clamp(26px, 3vw, 38px); margin: 10px 0 12px; }
 .lead p { color: var(--muted); margin: 0 0 12px; }
 .thumb { aspect-ratio: 16 / 10; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
-.thumb svg { width: 70%; height: auto; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover { container-type: inline-size; place-items: start; align-content: space-between; padding: 7cqi; background: var(--surface); }
+.cover b { font: 800 22px/1.08 var(--display); font-size: 8.5cqi; letter-spacing: -0.03em; color: var(--fg); text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.cover .cat { font-size: max(9px, 3.4cqi); }
+.figure { margin: 26px 0; }
+.figure img { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); display: block; }
+.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.figure figcaption a { text-decoration: underline; }
 .list { display: grid; gap: 0; }
 .item { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 20px; padding-block: 22px; border-bottom: 1px solid var(--line); }
 .item .thumb { border-radius: 10px; }
@@ -224,7 +263,7 @@ aside { display: flex; flex-direction: column; gap: 28px; }
 .back { font-size: 14px; color: var(--muted); }
 .article h1 { font-size: clamp(30px, 4.4vw, 46px); margin: 14px 0 16px; }
 .article .dek { font-size: 19px; color: var(--muted); margin: 0 0 18px; }
-.article .thumb { margin: 26px 0; }
+.article .cover { margin: 26px 0; }
 .article h2 { font-size: 24px; margin: 34px 0 10px; }
 .article h3 { font-size: 19px; margin: 26px 0 8px; }
 .article p, .article li { font-size: 17px; line-height: 1.7; }
@@ -257,7 +296,7 @@ footer a:hover { color: var(--fg); }
 
 const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='14' fill='%2338bdf8'/%3E%3Cpath d='M18 20 l10 8 l-10 8 M32 38 h10' stroke='%230b1220' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 
-function page({ title, description, path, type = 'website', jsonLd, active, noindex, main }) {
+function page({ title, description, path, type = 'website', jsonLd, active, noindex, main, image = OG_IMAGE }) {
   const canonical = SITE + path;
   const nav = Object.entries(CATEGORIES)
     .map(([slug, c]) => {
@@ -283,11 +322,11 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${OG_IMAGE}">
+<meta property="og:image" content="${esc(image)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${OG_IMAGE}">
+<meta name="twitter:image" content="${esc(image)}">
 ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>\n` : ''}<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Plus+Jakarta+Sans:wght@700;800&display=swap">
@@ -424,6 +463,7 @@ const bullets = (title, items, cls) => (items.length ? `<div class="${cls}">
 
 function articlePage(a) {
   const path = url(a);
+  const ogImage = a.image ? SITE + a.image : OG_IMAGE;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': a.category === 'guide-e-tutorial' ? 'Article' : 'NewsArticle',
@@ -433,7 +473,7 @@ function articlePage(a) {
     dateModified: a.date.toISOString(),
     inLanguage: 'it-IT',
     articleSection: CATEGORIES[a.category].name,
-    image: [OG_IMAGE],
+    image: [ogImage],
     mainEntityOfPage: SITE + path,
     author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
     publisher: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
@@ -444,6 +484,7 @@ function articlePage(a) {
     path,
     type: 'article',
     jsonLd,
+    image: ogImage,
     active: a.category,
     main: `<article class="article">
   <a class="back" href="/blog/">← Tutti gli articoli</a>
@@ -451,7 +492,7 @@ function articlePage(a) {
   <h1>${esc(a.title)}</h1>
   <p class="dek">${esc(a.description)}</p>
   <span class="meta">${AUTHOR} · <time datetime="${a.date.toISOString()}">${fullDate(a.date)}</time> · ${a.minutes} min di lettura</span>
-  ${thumb(a)}
+  ${figure(a)}
   ${bullets('In breve, cosa cambia per te', a.perTe, 'impact')}
   <div class="body">
 ${a.html}

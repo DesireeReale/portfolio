@@ -69,7 +69,7 @@ def publish(slug, note, today):
         md = add_note(md, note)
     taken = {p.stem for p in common.blog_dir().glob('*.md')}
     target = common.blog_dir() / f'{common.slugify(slug, taken)}.md'
-    target.write_text(md, encoding='utf-8')
+    target.write_text(common.localize_image(md, target.stem, common.ROOT / 'public'), encoding='utf-8')
     return target
 
 
