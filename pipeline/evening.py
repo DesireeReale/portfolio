@@ -13,6 +13,9 @@ import common
 import slop
 
 MAX_PICKS = 3
+MIN_PICKS = 2
+RANK_SIZE = 6
+PICK_TOKENS = 900
 SOURCE_CHARS = 8000
 DRAFT_TOKENS = 2500
 MIN_SOURCE = 600
@@ -48,16 +51,19 @@ Regole di stile, tutte obbligatorie:
 - Lunghezza del corpo: tra 300 e 550 parole."""
 
 PICK_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
-Ricevi una lista di notizie numerate. Scegli da 1 a {MAX_PICKS} notizie che un lettore italiano curioso di tecnologia vorrebbe leggere:
+Ricevi una lista di notizie numerate. Ordinale per interesse e restituisci le {RANK_SIZE} migliori, dalla più interessante.
+Il blog pubblica ogni sera: le prime {MIN_PICKS} della tua classifica diventano articoli, quindi metti in cima le migliori disponibili anche se nessuna è perfetta.
+Conta di più quello che un lettore italiano curioso di tecnologia vorrebbe leggere:
 qualcosa che può usare o provare, che cambia un servizio che usa già, che lo riguarda per sicurezza, privacy, lavoro o costi, o di cui sentirà parlare.
-Scarta: ricerca senza ricadute pratiche, eventi, nomine, finanziamenti, partnership generiche, opinioni senza fatti nuovi.
+Metti in fondo o lascia fuori: ricerca senza ricadute pratiche, eventi, nomine, finanziamenti, partnership generiche, opinioni senza fatti nuovi.
 Preferisci una singola notizia precisa o un progetto concreto a liste del tipo "i migliori", "X cose da sapere" o raccolte di prodotti.
 Scarta sempre le rassegne di gadget e prodotti di consumo da comprare.
 Le voci [GitHub] e [Hugging Face] sono progetti open source di tendenza: sceglili se riguardano l'intelligenza artificiale e si possono spiegare
 in parole semplici, cosa fanno e chi può provarli, anche se per installarli serve un minimo di pratica.
 Esempi graditi: un robot open source da costruire, un modello che si prova nel browser, uno strumento che gira sul proprio computer.
-Rispondi con zero notizie solo se nessuna riguarda l'intelligenza artificiale.
-Rispondi solo con JSON: {{"scelte": [{{"id": 0, "motivo": "una frase"}}]}}"""
+Segna "consigliata": true per le notizie che meritano davvero un articolo, oltre alle prime {MIN_PICKS}.
+Solo se nessuna notizia della lista riguarda l'intelligenza artificiale, rispondi con "nessuna_ai": true e classifica vuota.
+Rispondi solo con JSON: {{"nessuna_ai": false, "classifica": [{{"id": 0, "motivo": "una frase", "consigliata": true}}]}}"""
 
 DRAFT_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
 Scrivi un articolo sulla notizia che ricevi, basandoti solo sul testo della fonte.
@@ -249,13 +255,28 @@ def pick(items, slots):
     listing = '\n'.join(f"{n}. [{i['source']}] {i['title']}: {i['summary'][:300]}" for n, i in enumerate(items))
     try:
         data = common.parse_json(common.llm([{'role': 'system', 'content': PICK_PROMPT},
-                                             {'role': 'user', 'content': listing}], max_tokens=400))
-        ids = [c['id'] for c in data['scelte']]
+                                             {'role': 'user', 'content': listing}], max_tokens=PICK_TOKENS))
+        ranking = [c for c in data.get('classifica', []) if isinstance(c, dict)]
     except Exception as e:
         print(f'scelta non riuscita: {e}', file=sys.stderr)
         return None
-    ids = [n for n in dict.fromkeys(ids) if isinstance(n, int) and 0 <= n < len(items)]
-    return [items[n] for n in ids[:slots]]
+    if data.get('nessuna_ai') is True:
+        print('scelta: il modello dice che nessuna notizia riguarda l\'AI')
+        return []
+    if not ranking:
+        print('scelta non riuscita: classifica vuota senza "nessuna_ai"', file=sys.stderr)
+        return None
+    seen, chosen = set(), []
+    for c in ranking:
+        n = c.get('id')
+        if not isinstance(n, int) or not 0 <= n < len(items) or n in seen:
+            continue
+        seen.add(n)
+        take = len(chosen) < min(MIN_PICKS, slots) or (c.get('consigliata') is True and len(chosen) < slots)
+        print(f"{'SCELTA ' if take else 'scartata'} #{len(seen)} [{items[n]['source']}] {items[n]['title']}: {c.get('motivo', '')}")
+        if take:
+            chosen.append(items[n])
+    return chosen
 
 
 def validate(d):
@@ -277,21 +298,31 @@ def validate(d):
     return d
 
 
+def draft_llm(messages):
+    model = os.environ.get('LLM_DRAFT_MODEL')
+    if model and model != os.environ.get('LLM_MODEL'):
+        try:
+            return common.llm(messages, max_tokens=DRAFT_TOKENS, model=model, tries=1)
+        except Exception as e:
+            print(f'{model} non ha risposto ({e}), uso {os.environ.get("LLM_MODEL")} per questa bozza', file=sys.stderr)
+    return common.llm(messages, max_tokens=DRAFT_TOKENS)
+
+
 def write_draft(item, text):
     hint = REPO_HINT + '\n\n' if item.get('kind') == 'repo' else ''
     messages = [{'role': 'system', 'content': DRAFT_PROMPT},
                 {'role': 'user', 'content': f"{hint}Fonte: {item['source']}\nTitolo: {item['title']}\nURL: {item['link']}\n\nTesto della fonte:\n{text}"}]
-    answer = common.llm(messages, max_tokens=DRAFT_TOKENS, model=os.environ.get('LLM_DRAFT_MODEL'))
+    answer = draft_llm(messages)
     draft = validate(common.parse_json(answer))
     problems = slop.check(draft)
     if problems:
         messages += [{'role': 'assistant', 'content': answer},
                      {'role': 'user', 'content': 'Riscrivi l\'articolo correggendo questi problemi, stesso formato JSON:\n- ' + '\n- '.join(problems)}]
         try:
-            draft = validate(common.parse_json(common.llm(messages, max_tokens=DRAFT_TOKENS, model=os.environ.get('LLM_DRAFT_MODEL'))))
+            draft = validate(common.parse_json(draft_llm(messages)))
             problems = slop.check(draft)
-        except (ValueError, TypeError) as e:
-            problems.append(f'riscrittura non valida: {e}')
+        except Exception as e:
+            problems.append(f'riscrittura non riuscita: {e}')
     missing = slop.facts(draft, text)
     if missing:
         problems.append('non trovati nella fonte: ' + ', '.join(missing))

@@ -51,16 +51,37 @@ def post_json(url, payload, headers=None, timeout=120, tries=4):
             time.sleep(min(retry_after(e) or 15 * 2 ** n, 300))
 
 
-def llm(messages, max_tokens, model=None):
+class LLMError(RuntimeError):
+    pass
+
+
+def llm(messages, max_tokens, model=None, tries=2):
+    """Return the model's text; raise LLMError after `tries` timeouts or empty answers."""
     global _last_llm_call
-    time.sleep(max(0, _last_llm_call + LLM_GAP - time.monotonic()))
-    try:
-        data = post_json(os.environ['LLM_BASE_URL'].rstrip('/') + '/chat/completions',
-                         {'model': model or os.environ['LLM_MODEL'], 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4},
-                         {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}, timeout=300)
-    finally:
-        _last_llm_call = time.monotonic()
-    return data['choices'][0]['message']['content']
+    model = model or os.environ['LLM_MODEL']
+    base = os.environ['LLM_BASE_URL'].rstrip('/')
+    payload = {'model': model, 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4}
+    if 'generativelanguage.googleapis.com' in base and 'lite' not in model:
+        payload['reasoning_effort'] = 'low'
+    for n in range(tries):
+        time.sleep(max(0, _last_llm_call + LLM_GAP - time.monotonic()))
+        try:
+            data = post_json(base + '/chat/completions', payload, {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}, timeout=180)
+        except urllib.error.HTTPError:
+            raise
+        except (TimeoutError, urllib.error.URLError) as e:
+            if n == tries - 1:
+                raise LLMError(f'nessuna risposta dal modello {model} dopo {tries} tentativi: {e}') from e
+            continue
+        finally:
+            _last_llm_call = time.monotonic()
+        choice = (data.get('choices') or [{}])[0]
+        content = ((choice.get('message') or {}).get('content') or '').strip()
+        if content:
+            return content
+        reason = choice.get('finish_reason')
+    raise LLMError(f'risposta vuota dal modello {model} dopo {tries} tentativi (finish_reason={reason}); '
+                   f'se è "length", il ragionamento ha consumato max_tokens={max_tokens}')
 
 
 def parse_json(text):
