@@ -1,4 +1,4 @@
-import { Project, Experience, SkillGroup, Service } from './types';
+import { Project, Experience, SkillGroup } from './types';
 
 export const PROFILE = {
   name: 'Desirèe Reale',
@@ -142,20 +142,21 @@ export const PERSONAL_PROJECTS: Project[] = [
   },
   {
     id: 'summarize-extension',
-    title: 'Riassumi Pagina AI',
+    title: 'Recap',
     description: 'Estensione Chrome che riassume con un clic la pagina web o il PDF che stai leggendo, usando modelli gratuiti (Gemini, Groq, OpenRouter) o in locale con Ollama.',
     image: '/card7.svg',
     tags: ['Chrome Extension', 'Multi-Provider', 'Privacy'],
     tech: ['JavaScript', 'Manifest V3', 'pdf.js', 'LLM'],
-    link: '#',
+    link: 'https://github.com/desireereale/resume_extension',
     features: [
       'Riassunto di pagine web e PDF',
       'Sei provider, anche gratuiti o in locale',
+      'OCR dei PDF scansionati con Gemini Vision',
       'Chiave API salvata solo nel browser',
       'Richiesta nel service worker, sopravvive alla chiusura del popup'
     ],
     problem: 'Articoli lunghi e PDF richiedono tempo per capire se valgono la lettura, e gli strumenti di riassunto spesso sono a pagamento o mandano i dati a servizi terzi.',
-    solution: 'L\'estensione estrae il testo della pagina o del PDF e lo invia al modello scelto dall\'utente, con la sua chiave salvata in locale. Supporta provider gratuiti e Ollama per lavorare completamente offline.',
+    solution: 'L\'estensione estrae il testo della pagina o del PDF e lo invia al modello scelto dall\'utente, con la sua chiave salvata in locale. Supporta provider gratuiti e Ollama per lavorare completamente offline; i PDF scansionati vengono letti con l\'OCR.',
     whyInteresting: 'Un riassunto in un clic, gratis e con il controllo totale su dove finiscono i dati.'
   },
   {
@@ -178,38 +179,6 @@ export const PERSONAL_PROJECTS: Project[] = [
   }
 ];
 
-export const SERVICES: Service[] = [
-  {
-    icon: 'Bot',
-    title: 'Agenti AI operativi',
-    description: 'Agenti che non si limitano a rispondere ma agiscono: leggono email e richieste, consultano i gestionali, aggiornano dati e completano attività ripetitive, con controllo umano dove serve.'
-  },
-  {
-    icon: 'MessageSquare',
-    title: 'Assistente sui documenti aziendali',
-    description: 'Un chatbot che risponde su manuali, procedure, contratti e archivi interni, citando le fonti. Per il supporto clienti o per far trovare subito le informazioni al personale.'
-  },
-  {
-    icon: 'FileText',
-    title: 'Estrazione dati dai documenti',
-    description: 'Fatture, DDT, contratti, moduli e PDF scansionati letti dall\'AI: i dati finiscono direttamente nel gestionale o nel database, senza copiarli a mano.'
-  },
-  {
-    icon: 'Workflow',
-    title: 'Automazione dei processi',
-    description: 'Workflow con AI integrata che collegano gli strumenti che già usi (email, CRM, ERP, Drive, Teams, Telegram) ed eliminano i passaggi manuali tra un sistema e l\'altro.'
-  },
-  {
-    icon: 'LineChart',
-    title: 'Report e analisi automatiche',
-    description: 'Dai dati grezzi a report e presentazioni pronti, generati e inviati in automatico. E la possibilità di interrogare i dati aziendali in linguaggio naturale.'
-  },
-  {
-    icon: 'ShieldCheck',
-    title: 'AI privata e on-premise',
-    description: 'Modelli open-source installati sui tuoi server, per usare l\'AI senza far uscire i dati dall\'azienda. Attenzione a GDPR e AI Act fin dalla progettazione.'
-  }
-];
 
 export const EXPERIENCES: Experience[] = [
   {

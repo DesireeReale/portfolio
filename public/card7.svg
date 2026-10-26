@@ -11,8 +11,8 @@
   </defs>
   <rect width="600" height="500" fill="url(#bg7)"/>
   <rect width="600" height="500" fill="url(#glow7)"/>
-  <text x="36" y="58" fill="#f8fafc" font-size="30" font-weight="800" letter-spacing="1">RIASSUMI</text>
-  <text x="36" y="92" fill="#c084fc" font-size="30" font-weight="800" letter-spacing="3">PAGINA AI</text>
+  <text x="36" y="58" fill="#f8fafc" font-size="30" font-weight="800" letter-spacing="1">RECAP</text>
+  <text x="36" y="92" fill="#c084fc" font-size="30" font-weight="800" letter-spacing="3">AI SUMMARY</text>
 
   <g transform="translate(90,140)">
     <rect width="420" height="270" rx="14" fill="#0b1220" stroke="#334155"/>
@@ -44,7 +44,7 @@
         <rect x="14" y="114" width="90" height="7" rx="3.5"/>
       </g>
       <rect x="14" y="156" width="132" height="28" rx="14" fill="#a855f7"/>
-      <text x="80" y="174" text-anchor="middle" fill="#020617" font-size="11" font-weight="800" letter-spacing="1">RIASSUMI</text>
+      <text x="80" y="174" text-anchor="middle" fill="#020617" font-size="11" font-weight="800" letter-spacing="1">RECAP</text>
     </g>
   </g>
   <text x="40" y="452" fill="#64748b" font-size="13" font-family="monospace" letter-spacing="1">CHROME MV3 · PDF · GEMINI · GROQ · OLLAMA</text>

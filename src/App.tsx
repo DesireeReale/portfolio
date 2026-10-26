@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import ServicesSection from './components/ServicesSection';
 import ProjectSection from './components/ProjectSection';
 import ExperienceSection from './components/ExperienceSection';
 import TechStack from './components/TechStack';
@@ -21,7 +20,6 @@ export default function App() {
       
       <main className="pt-24 pb-20 px-6 max-w-7xl mx-auto space-y-24 md:space-y-28">
         <Hero isDark={isDark} />
-        <ServicesSection isDark={isDark} />
         <ProjectSection isDark={isDark} />
         <ProjectSection
           isDark={isDark}

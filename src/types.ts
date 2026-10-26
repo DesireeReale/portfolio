@@ -25,9 +25,3 @@ export interface SkillGroup {
   title: string;
   items: string[];
 }
-
-export interface Service {
-  icon: string;
-  title: string;
-  description: string;
-}
