@@ -8,5 +8,7 @@
   {"name": "Ars Technica", "url": "https://arstechnica.com/ai/feed/"},
   {"name": "Wired", "url": "https://www.wired.com/feed/tag/ai/latest/rss"},
   {"name": "MIT Technology Review", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed"},
-  {"name": "GitHub", "url": "https://github.com/trending", "tipo": "github-trending"}
+  {"name": "GitHub", "url": "https://github.com/trending", "tipo": "github-trending"},
+  {"name": "Hugging Face Spaces", "url": "https://huggingface.co/api/spaces?sort=trendingScore&limit=20&expand%5B%5D=cardData&expand%5B%5D=likes", "tipo": "hf-spaces"},
+  {"name": "Hugging Face Models", "url": "https://huggingface.co/api/models?sort=trendingScore&limit=20&expand%5B%5D=cardData&expand%5B%5D=likes&expand%5B%5D=pipeline_tag", "tipo": "hf-models"}
 ]

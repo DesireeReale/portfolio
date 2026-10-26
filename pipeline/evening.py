@@ -13,10 +13,14 @@ import slop
 
 MAX_PICKS = 3
 SOURCE_CHARS = 8000
+MIN_SOURCE = 600
 TELEGRAM_LIMIT = 4000
 DEFAULT_WINDOW = timedelta(hours=24)
 MAX_WINDOW = timedelta(hours=72)
-REPO_HINT = """Questa fonte è un progetto open source su GitHub e il testo è il suo README.
+CHOICE_NOTE = 'La scelta viene letta dal giro del mattino.'
+HF_SKIP = re.compile(r'uncensor|nsfw|nude|porn|undress|hentai', re.I)
+ROUNDUP = re.compile(r'hottest|gift guide|round-?up|\bbest\b.*\b(gadgets?|devices?|deals?)\b|\b(gadgets?|devices?) (for|to buy)\b|you should know|\btop \d+\b|^\d+ ', re.I)
+REPO_HINT = """Questa fonte è un progetto open source su GitHub o Hugging Face e il testo è il suo README o la sua scheda.
 Spiega cosa fa il progetto, per chi è utile e se una persona comune può usarlo:
 se c'è un'app o un sito pronto, oppure se serve installarlo e saper usare il terminale."""
 ATOM = '{http://www.w3.org/2005/Atom}'
@@ -35,8 +39,11 @@ PICK_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intellige
 Ricevi una lista di notizie numerate. Scegli da 1 a {MAX_PICKS} notizie che un lettore italiano curioso di tecnologia vorrebbe leggere:
 qualcosa che può usare o provare, che cambia un servizio che usa già, che lo riguarda per sicurezza, privacy, lavoro o costi, o di cui sentirà parlare.
 Scarta: ricerca senza ricadute pratiche, eventi, nomine, finanziamenti, partnership generiche, opinioni senza fatti nuovi.
-Le voci [GitHub] sono progetti open source di tendenza: sceglili se riguardano l'intelligenza artificiale e si possono spiegare
+Preferisci una singola notizia precisa o un progetto concreto a liste del tipo "i migliori", "X cose da sapere" o raccolte di prodotti.
+Scarta sempre le rassegne di gadget e prodotti di consumo da comprare.
+Le voci [GitHub] e [Hugging Face] sono progetti open source di tendenza: sceglili se riguardano l'intelligenza artificiale e si possono spiegare
 in parole semplici, cosa fanno e chi può provarli, anche se per installarli serve un minimo di pratica.
+Esempi graditi: un robot open source da costruire, un modello che si prova nel browser, uno strumento che gira sul proprio computer.
 Rispondi con zero notizie solo se nessuna riguarda l'intelligenza artificiale.
 Rispondi solo con JSON: {{"scelte": [{{"id": 0, "motivo": "una frase"}}]}}"""
 
@@ -132,7 +139,28 @@ def parse_trending(html, source, now):
     return items
 
 
+def parse_hf(data, source, now, kind):
+    items = []
+    for d in json.loads(data):
+        repo = d.get('id', '')
+        if not repo or HF_SKIP.search(repo):
+            continue
+        card = d.get('cardData') or {}
+        base = f'https://huggingface.co/spaces/{repo}' if kind == 'spaces' else f'https://huggingface.co/{repo}'
+        about = card.get('short_description') or card.get('title') or d.get('pipeline_tag') or ''
+        items.append({'title': repo, 'link': base, 'date': now, 'source': source, 'kind': 'repo',
+                      'readme': f'{base}/raw/main/README.md', 'summary': f"{about} ({d.get('likes', 0)} like)"})
+    return items
+
+
+def card_text(readme):
+    readme = re.sub(r'\A---\n.*?\n---\n', '', readme.replace('\r\n', '\n'), count=1, flags=re.S)
+    return readme.replace('Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference', '')
+
+
 def source_text(item):
+    if item.get('readme'):
+        return f"{item['title']}: {item['summary']}\n\n{html_text(card_text(fetch(item['readme'])))}"[:SOURCE_CHARS]
     if item.get('kind') == 'repo':
         readme = fetch(f"https://api.github.com/repos/{item['title']}/readme", {'Accept': 'application/vnd.github.raw'})
         return f"{item['title']}: {item['summary']}\n\n{html_text(readme)}"[:SOURCE_CHARS]
@@ -153,10 +181,17 @@ def collect(start, now, seen):
     for f in feeds:
         try:
             page = fetch(f['url'])
-            items += parse_trending(page, f['name'], now) if f.get('tipo') == 'github-trending' else parse_feed(page, f['name'])
+            tipo = f.get('tipo', '')
+            if tipo == 'github-trending':
+                items += parse_trending(page, f['name'], now)
+            elif tipo.startswith('hf-'):
+                items += parse_hf(page, f['name'], now, tipo[3:])
+            else:
+                items += parse_feed(page, f['name'])
         except Exception as e:
             print(f"feed {f['name']} non letto: {e}", file=sys.stderr)
-    fresh = {i['link']: i for i in items if i['link'] not in seen and start <= i['date'] <= now}
+    fresh = {i['link']: i for i in items
+             if i['link'] not in seen and start <= i['date'] <= now and not ROUNDUP.search(i['title'])}
     return list(fresh.values())
 
 
@@ -231,6 +266,7 @@ def send_draft(slug, md, problems):
     parts = chunks(head + md)
     buttons = {'inline_keyboard': [[{'text': 'Approva', 'callback_data': f'ok:{slug}'},
                                     {'text': 'Scarta', 'callback_data': f'no:{slug}'}]]}
+    parts[-1] += f'\n\n{CHOICE_NOTE}'
     ids = []
     for n, part in enumerate(parts):
         extra = {'reply_markup': buttons} if n == len(parts) - 1 else {}
@@ -271,7 +307,12 @@ def run(now=None):
     written, failed = [], []
     for item in retry + (picks or []):
         try:
-            draft, problems = write_draft(item, source_text(item))
+            text = source_text(item)
+            if len(text) < MIN_SOURCE:
+                print(f"fonte troppo corta per {item['link']} ({len(text)} caratteri), notizia saltata", file=sys.stderr)
+                written.append(item['link'])
+                continue
+            draft, problems = write_draft(item, text)
         except Exception as e:
             print(f"bozza non scritta per {item['link']}, riprovo alla prossima corsa: {e}", file=sys.stderr)
             failed.append(item)

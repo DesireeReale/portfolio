@@ -10,7 +10,10 @@ BANNED = [
     'svolta epocale', 'a 360 gradi', 'sfruttare il potenziale', 'il potenziale dell', 'straordinari',
     'incredibil', 'cambia le regole del gioco', 'il futuro è qui', 'senza dubbio', 'potente strumento',
     'strumento potente', 'apre nuove possibilità', 'nuove frontiere', 'tuffiamoci',
+    'scopri', 'ecco come', 'ecco perché', 'ecco cosa', 'preparati a', "di' addio", 'dì addio', 'sei pronto',
+    'non perdere', 'da non perdere', 'tutto quello che devi sapere', 'tutto ciò che devi sapere', 'il segreto per',
 ]
+OPENER = re.compile(r"\s*(?:ecco|immagina|preparati|pronti|pronto|vuoi|finalmente|addio|basta|novità)\b")
 ADJ = re.compile(r'(?:ale|ali|ile|ili|iv[oaie]|os[oaie]|ante|anti|ente|enti|ic[oaie]|iche|abile|ibile|evole|ari[oae]?)$')
 ADJ_STEMS = {'semplic', 'veloc', 'sicur', 'potent', 'facil', 'modern', 'complet', 'rapid', 'nuov', 'chiar', 'innovativ'}
 TRIAD = re.compile(r"\b([a-zà-ù]+), ([a-zà-ù]+),? e ([a-zà-ù]+)\b")
@@ -34,27 +37,39 @@ def is_adj(w):
     return bool(ADJ.search(w)) or w[:-1] in ADJ_STEMS
 
 
-def check(draft):
-    """Return the list of style problems in a draft dict (title, description, perTe, perAzienda, body)."""
-    full = plain('\n'.join([draft['title'], draft['description'], *draft['perTe'], *draft['perAzienda'], draft['body']]))
-    low = full.lower()
+def text_problems(text, short):
+    low = text.lower()
     problems = [f'frase vietata: "{p}"' for p in BANNED if re.search(r'(?<!\w)' + re.escape(p), low)]
-    if full.count('—') > 1:
-        problems.append(f"troppi trattini lunghi (—): {full.count('—')}")
-    if '!' in full:
-        problems.append(f"punti esclamativi: {full.count('!')}")
-    if EMOJI.search(full):
+    opener = OPENER.match(low)
+    if short and opener:
+        problems.append(f'apertura da pubblicità: "{opener.group(0).strip()}"')
+    if '!' in text:
+        problems.append(f"punti esclamativi: {text.count('!')}")
+    if EMOJI.search(text):
         problems.append('emoji presenti')
-    for line in full.splitlines():
+    for line in text.splitlines():
         if '?' in line and not line.lstrip().startswith('#'):
             problems.append(f'domanda retorica: "{line.strip()[:80]}"')
     for m in TRIAD.finditer(low):
         if all(is_adj(w) for w in m.groups()):
             problems.append(f'tripletta di aggettivi: "{m.group(0)}"')
-    for s in sentences(full):
+    for s in sentences(text):
         n = len(re.findall(r'\w+', s))
         if n > MAX_WORDS_SENTENCE:
             problems.append(f'frase troppo lunga ({n} parole): "{s[:60]}…"')
+    return problems
+
+
+def check(draft):
+    """Return the list of style problems in a draft dict (title, description, perTe, perAzienda, body)."""
+    fields = [('titolo', draft['title']), ('descrizione', draft['description']),
+              *(('perTe', p) for p in draft['perTe']), *(('perAzienda', p) for p in draft['perAzienda']), ('corpo', draft['body'])]
+    problems = []
+    for field, text in fields:
+        problems += [f'{field}: {p}' for p in text_problems(plain(text), field != 'corpo')]
+    full = '\n'.join(text for _, text in fields)
+    if full.count('—') > 1:
+        problems.append(f"troppi trattini lunghi (—): {full.count('—')}")
     words = len(re.findall(r'\w+', plain(draft['body'])))
     if not MIN_WORDS <= words <= MAX_WORDS:
         problems.append(f'lunghezza del testo {words} parole (servono {MIN_WORDS}-{MAX_WORDS})')

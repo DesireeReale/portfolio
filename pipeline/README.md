@@ -2,7 +2,9 @@
 
 Ogni sera `evening.py` legge i feed in `feeds.json`, sceglie al massimo 3 notizie uscite dopo la corsa precedente (al massimo 72 ore prima, 24 ore al primo avvio), scrive le bozze in `drafts/` e te le manda su Telegram con i pulsanti **Approva** e **Scarta**. Ogni mattina `morning.py` legge le tue risposte: le bozze approvate passano in `content/blog/`, quelle scartate vengono cancellate, quelle senza risposta restano un altro giorno e poi vengono cancellate.
 
-Oltre ai feed, legge i progetti di tendenza del giorno su <https://github.com/trending>: il modello propone solo quelli legati all'AI e utili a chi non programma, e la bozza spiega cosa fa il progetto e se puoi usarlo. Le chiamate al modello sono distanziate di qualche secondo per restare nei limiti dei piani gratuiti; se una bozza non si riesce a scrivere, la notizia viene riprovata la sera dopo. Se Telegram non risponde, le bozze restano in `drafts/` e vengono rimandate la sera dopo.
+Oltre ai feed, legge i progetti di tendenza del giorno su <https://github.com/trending> e gli Spaces e i modelli di tendenza su Hugging Face (API pubblica, senza token; la fonte è il README o la scheda del modello). Le rassegne di gadget e le liste "i migliori" vengono scartate prima della scelta. Il modello propone solo quelli legati all'AI e utili a chi non programma, e la bozza spiega cosa fa il progetto e se puoi usarlo. Le chiamate al modello sono distanziate di qualche secondo per restare nei limiti dei piani gratuiti; se una bozza non si riesce a scrivere, la notizia viene riprovata la sera dopo. Se Telegram non risponde, le bozze restano in `drafts/` e vengono rimandate la sera dopo.
+
+I pulsanti non danno una risposta subito: la scelta viene letta dal giro del mattino, che poi toglie i pulsanti, aggiunge "Approvata" o "Scartata" al messaggio e ti manda un riepilogo di cosa è stato pubblicato, scartato o è ancora in attesa.
 
 Se rispondi (con "Rispondi") al messaggio di una bozza, il tuo testo finisce in cima all'articolo come nota personale. Rispondi prima di premere Approva oppure entro la mattina dopo.
 
