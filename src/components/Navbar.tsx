@@ -22,6 +22,7 @@ export default function Navbar({ isDark, toggleTheme }: NavbarProps) {
 { name: 'Personali', href: '#personal-projects' },
 { name: 'Esperienza', href: '#experience' },
 { name: 'Competenze', href: '#skills' },
+{ name: 'Blog', href: '/blog/' },
   ];
 
   const primary = isDark ? '#38bdf8' : '#f59e0b';
