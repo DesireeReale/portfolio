@@ -1,7 +1,9 @@
 import json
 import os
 import re
+import time
 import unicodedata
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -27,16 +29,22 @@ def write_json(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def post_json(url, payload, headers=None, timeout=120):
+def post_json(url, payload, headers=None, timeout=120, tries=4):
     req = urllib.request.Request(url, json.dumps(payload).encode(), {'Content-Type': 'application/json', **(headers or {})})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.load(r)
+    for n in range(tries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or n == tries - 1:
+                raise
+            time.sleep(15 * 2 ** n)
 
 
 def llm(messages, max_tokens):
     data = post_json(os.environ['LLM_BASE_URL'].rstrip('/') + '/chat/completions',
                      {'model': os.environ['LLM_MODEL'], 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4},
-                     {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']})
+                     {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}, timeout=300)
     return data['choices'][0]['message']['content']
 
 

@@ -12,7 +12,7 @@ Le bozze marcate **DA CONTROLLARE** hanno problemi di stile rimasti dopo la risc
 
 1. **Chiave LLM gratuita.** Una a scelta, tutte con endpoint compatibile OpenAI:
    - Groq: crea una chiave su <https://console.groq.com/keys>. `LLM_BASE_URL` = `https://api.groq.com/openai/v1`, `LLM_MODEL` per esempio `llama-3.3-70b-versatile`.
-   - Gemini: chiave su <https://aistudio.google.com/apikey>. `LLM_BASE_URL` = `https://generativelanguage.googleapis.com/v1beta/openai`, `LLM_MODEL` per esempio `gemini-2.5-flash`.
+   - Gemini: chiave su <https://aistudio.google.com/apikey>. `LLM_BASE_URL` = `https://generativelanguage.googleapis.com/v1beta/openai`, `LLM_MODEL` per esempio `gemini-flash-lite-latest`.
    - OpenRouter: chiave su <https://openrouter.ai/keys>. `LLM_BASE_URL` = `https://openrouter.ai/api/v1`, `LLM_MODEL` un modello con suffisso `:free`.
 2. **Bot Telegram.** Su Telegram scrivi a `@BotFather`, invia `/newbot`, scegli nome e username. Il token che ti risponde è `TELEGRAM_BOT_TOKEN`.
 3. **Chat id.** Scrivi un messaggio qualsiasi al tuo bot, poi apri nel browser `https://api.telegram.org/bot<TOKEN>/getUpdates`. Il numero in `"chat":{"id": ...}` è `TELEGRAM_CHAT_ID`. Il bot accetta risposte solo da questa chat.
