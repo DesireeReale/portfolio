@@ -72,6 +72,9 @@ Gli "id" devono essere numeri presenti nella lista, tutti diversi."""
 
 DRAFT_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
 Scrivi un articolo sulla notizia che ricevi, basandoti solo sul testo della fonte.
+Il testo della fonte può contenere parti del sito che non sono la notizia: ignora promozioni, abbonamenti, newsletter, inviti a seguire
+il sito sui social, biografie degli autori, link e titoli di altri articoli, menu e avvisi sui cookie.
+Non parlare mai delle offerte, degli abbonamenti o dei podcast del sito che pubblica la notizia, a meno che la notizia sia proprio quella.
 
 {STYLE}
 
@@ -96,30 +99,78 @@ Rispondi solo con JSON con queste chiavi:
 - "body": il corpo in Markdown, con titoletti "## ", senza ripetere il titolo e senza link."""
 
 
+JUNK_ATTR = re.compile(r'subscri|newsletter|promo|related|share|sharing|comment|cookie|paywall|social|advert|sponsor|signup'
+                       r'|(?:^|[\s_-])ads?(?:$|[\s_-])', re.I)
+CTA_LINE = re.compile(r'\b(subscribe|sign up|newsletter|follow us|follow topics|read more|abbonati|iscriviti|ad-free)\b'
+                      r'|\bsubscribers? (get|can|have|receive)\b|^(image|photo|illustration|credit)s?( by)?:', re.I)
+CTA_MAX = 300
+END_MARKER = re.compile(r'(most popular|popular|trending|related( articles| stories)?|latest in .{1,30}|more from .{1,40}'
+                        r'|read next|topics|recommended|you might also like|leggi anche)', re.I)
+
+
 class TextParser(HTMLParser):
-    SKIP = {'script', 'style', 'noscript', 'svg', 'nav', 'footer', 'header', 'form'}
+    SKIP = {'script', 'style', 'noscript', 'svg', 'nav', 'footer', 'header', 'form', 'aside', 'figure', 'figcaption',
+            'button', 'iframe', 'template', 'dialog'}
+    VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr', 'param'}
+    BLOCK = {'p', 'div', 'section', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'td', 'article', 'main', 'tr'}
 
     def __init__(self):
         super().__init__()
-        self.parts, self.depth = [], 0
+        self.stack, self.chunks, self.count = [], [], 0
 
     def handle_starttag(self, tag, attrs):
-        if tag in self.SKIP:
-            self.depth += 1
+        if tag in self.VOID:
+            return
+        a = dict(attrs)
+        skip = tag in self.SKIP or bool(JUNK_ATTR.search(f"{a.get('class') or ''} {a.get('id') or ''}"))
+        self.count += 1
+        self.stack.append((tag, self.count, skip))
 
     def handle_endtag(self, tag):
-        if tag in self.SKIP and self.depth:
-            self.depth -= 1
+        for n in range(len(self.stack) - 1, -1, -1):
+            if self.stack[n][0] == tag:
+                del self.stack[n:]
+                return
 
     def handle_data(self, data):
-        if not self.depth and data.strip():
-            self.parts.append(data.strip())
+        if not data.strip() or any(skip for _, _, skip in self.stack):
+            return
+        ids = lambda name: [i for t, i, _ in self.stack if t == name]
+        block = next((i for t, i, _ in reversed(self.stack) if t in self.BLOCK), 0)
+        para = next((n for n in range(len(self.stack) - 1, -1, -1) if self.stack[n][0] == 'p'), None)
+        holder = self.stack[para - 1][1] if para else None
+        self.chunks.append({'text': data, 'block': block, 'article': (ids('article') or [None])[-1],
+                            'main': (ids('main') or [None])[0], 'holder': holder})
 
 
 def html_text(html):
+    """Return the article body as lines: the largest <article>, else <main>, else the largest block of paragraphs."""
     p = TextParser()
     p.feed(html)
-    return ' '.join(p.parts)
+    chunks = p.chunks
+    for key in ('article', 'main', 'holder'):
+        sizes = {}
+        for c in chunks:
+            if c[key] is not None:
+                sizes[c[key]] = sizes.get(c[key], 0) + len(c['text'])
+        if sizes:
+            best = max(sizes, key=sizes.get)
+            chunks = [c for c in chunks if c[key] == best]
+            break
+    lines, last = [], None
+    for c in chunks:
+        if c['block'] != last or not lines:
+            lines.append('')
+            last = c['block']
+        lines[-1] += c['text']
+    lines = [l for l in (' '.join(l.split()) for l in lines) if l and not (len(l) < CTA_MAX and CTA_LINE.search(l))]
+    total, before = sum(map(len, lines)), 0
+    for n, l in enumerate(lines):
+        if before > total * 0.3 and END_MARKER.fullmatch(l):
+            lines = lines[:n]
+            break
+        before += len(l)
+    return '\n'.join(lines)
 
 
 def fetch(url, headers=None, raw=False):
@@ -337,13 +388,13 @@ def write_draft(item, text):
                 {'role': 'user', 'content': f"{hint}Fonte: {item['source']}\nTitolo: {item['title']}\nURL: {item['link']}\n\nTesto della fonte:\n{text}"}]
     answer = draft_llm(messages)
     draft = validate(common.parse_json(answer))
-    problems = slop.check(draft)
+    problems = slop.check(draft, item['source'])
     if problems:
         messages += [{'role': 'assistant', 'content': answer},
                      {'role': 'user', 'content': 'Riscrivi l\'articolo correggendo questi problemi, stesso formato JSON:\n- ' + '\n- '.join(problems)}]
         try:
             draft = validate(common.parse_json(draft_llm(messages)))
-            problems = slop.check(draft)
+            problems = slop.check(draft, item['source'])
         except Exception as e:
             problems.append(f'riscrittura non riuscita: {e}')
     missing = slop.facts(draft, text)

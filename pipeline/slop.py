@@ -25,7 +25,10 @@ INLINE_CODE = re.compile(r'`[^`\n]+`')
 LICENCE = re.compile(r'licenz|licens|\b(a?gpl|mit|apache|bsd)\b', re.I)
 GENERIC_HEADING = re.compile(r"(cos'è|cosa cambia|perché (è|conta|importa)|panoramica|il contesto|in breve|i vantaggi|vantaggi"
                              r"|cosa (c'è da |devi )?sapere|cosa significa|le novità|introduzione|conclusion|i dettagli)\b", re.I)
-HOWTO_HEADING = re.compile(r'install|scaric|come (si )?(usa|prova|avvi)|come usarl|come provarl|primi passi|avvio', re.I)
+PROMO_VERB = r'(?:abbona|iscriv|subscri|sottoscriv)'
+PROMO = re.compile(r'(?:^|[.:]\s+|-\s+)abbonati\b|\biscriviti\b|\biscriversi\b|\bnewsletter di\b'
+                   r'|\bsegui(?:ci|teci|te)?\b[^.\n]{0,40}?\bsu\b|\bsenza pubblicità\b', re.M)
+HOWTO_HEADING =re.compile(r'install|scaric|come (si )?(usa|prova|avvi)|come usarl|come provarl|primi passi|avvio', re.I)
 
 
 def plain(text):
@@ -66,7 +69,17 @@ def text_problems(text, short):
     return problems
 
 
-def check(draft):
+def promo_problems(text, outlet=None):
+    low = plain(text).lower()
+    problems = [f'promozione della fonte: "{m.group(0)}"' for m in PROMO.finditer(low)]
+    if outlet:
+        name = re.escape(outlet.lower())
+        for m in re.finditer(rf'{name}\W+(?:\w+\W+){{0,4}}?{PROMO_VERB}|{PROMO_VERB}\w*\W+(?:\w+\W+){{0,4}}?{name}', low):
+            problems.append(f'promozione di {outlet}: "{m.group(0)}"')
+    return list(dict.fromkeys(problems))
+
+
+def check(draft, outlet=None):
     """Return the list of style problems in a draft dict (title, description, perTe, perAzienda, body)."""
     fields = [('titolo', draft['title']), ('descrizione', draft['description']),
               *(('perTe', p) for p in draft['perTe']), *(('perAzienda', p) for p in draft['perAzienda']), ('corpo', draft['body'])]
@@ -80,7 +93,7 @@ def check(draft):
     if not MIN_WORDS <= words <= MAX_WORDS:
         problems.append(f'lunghezza del testo {words} parole (servono {MIN_WORDS}-{MAX_WORDS})')
     problems += [f'perAzienda: la licenza non è un uso aziendale: "{p[:60]}"' for p in draft['perAzienda'] if LICENCE.search(p)]
-    return problems + structure_problems(draft['body'])
+    return problems + structure_problems(draft['body']) + promo_problems(full, outlet)
 
 
 def prose(text):
