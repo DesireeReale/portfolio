@@ -33,6 +33,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p content/blog
           git add pipeline/state pipeline/drafts content/blog
           git diff --cached --quiet || git commit -m "Bozze notizie del $(date -u +%F)"
           git pull --rebase
