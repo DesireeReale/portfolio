@@ -2,7 +2,7 @@
 
 Ogni sera `evening.py` legge i feed in `feeds.json`, sceglie al massimo 3 notizie uscite dopo la corsa precedente (al massimo 72 ore prima, 24 ore al primo avvio), scrive le bozze in `drafts/` e te le manda su Telegram con i pulsanti **Approva** e **Scarta**. Ogni mattina `morning.py` legge le tue risposte: le bozze approvate passano in `content/blog/`, quelle scartate vengono cancellate, quelle senza risposta restano un altro giorno e poi vengono cancellate.
 
-I feed con `"soloAI": true` sono siti di tecnologia generale: da questi passano solo le notizie che parlano di intelligenza artificiale. Se Telegram non risponde, le bozze restano in `drafts/` e vengono rimandate la sera dopo.
+Oltre ai feed, legge i progetti di tendenza del giorno su <https://github.com/trending>: il modello propone solo quelli legati all'AI e utili a chi non programma, e la bozza spiega cosa fa il progetto e se puoi usarlo. Le chiamate al modello sono distanziate di qualche secondo per restare nei limiti dei piani gratuiti; se una bozza non si riesce a scrivere, la notizia viene riprovata la sera dopo. Se Telegram non risponde, le bozze restano in `drafts/` e vengono rimandate la sera dopo.
 
 Se rispondi (con "Rispondi") al messaggio di una bozza, il tuo testo finisce in cima all'articolo come nota personale. Rispondi prima di premere Approva oppure entro la mattina dopo.
 

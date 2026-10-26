@@ -16,9 +16,9 @@ SOURCE_CHARS = 8000
 TELEGRAM_LIMIT = 4000
 DEFAULT_WINDOW = timedelta(hours=24)
 MAX_WINDOW = timedelta(hours=72)
-AI_ACRONYM = re.compile(r'\b(?:AI|IA)\b')
-AI_WORDS = re.compile(r'intelligenza artificiale|artificial intelligence|chatgpt|openai|anthropic|claude|gemini|copilot|'
-                      r'deepseek|mistral|grok|perplexity|chatbot|\bllm', re.I)
+REPO_HINT = """Questa fonte è un progetto open source su GitHub e il testo è il suo README.
+Spiega cosa fa il progetto, per chi è utile e se una persona comune può usarlo:
+se c'è un'app o un sito pronto, oppure se serve installarlo e saper usare il terminale."""
 ATOM = '{http://www.w3.org/2005/Atom}'
 
 STYLE = """Scrivi in italiano semplice, per lettori comuni che non sono tecnici. Dai del tu al lettore.
@@ -35,6 +35,8 @@ PICK_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intellige
 Ricevi una lista di notizie numerate. Scegli al massimo {MAX_PICKS} notizie davvero utili a un lettore italiano comune:
 qualcosa che può usare, che cambia un servizio che usa già, o che lo riguarda per sicurezza, privacy o costi.
 Scarta: ricerca senza ricadute pratiche, annunci per soli sviluppatori, eventi, nomine, finanziamenti, partnership generiche, servizi non disponibili in Italia.
+Le voci [GitHub] sono progetti open source di tendenza: sceglili solo se riguardano l'intelligenza artificiale
+e se una persona comune può usarli o ne sentirà parlare, non se servono solo a chi programma.
 Zero notizie è una risposta valida e frequente.
 Rispondi solo con JSON: {{"scelte": [{{"id": 0, "motivo": "una frase"}}]}}"""
 
@@ -79,8 +81,8 @@ def html_text(html):
     return ' '.join(p.parts)
 
 
-def fetch(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (blog news bot)'})
+def fetch(url, headers=None):
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (blog news bot)', **(headers or {})})
     with urllib.request.urlopen(req, timeout=30) as r:
         data = r.read()
         if r.headers.get('Content-Encoding') == 'gzip':
@@ -114,9 +116,27 @@ def parse_feed(xml, source):
     return [dict(i, source=source, title=i['title'].strip()) for i in items if i['link'] and i['date']]
 
 
-def about_ai(item):
-    text = f"{item['title']} {item['summary']}"
-    return bool(AI_ACRONYM.search(text) or AI_WORDS.search(text))
+def parse_trending(html, source, now):
+    items = []
+    for block in html.split('<article class="Box-row">')[1:]:
+        name = re.search(r'<h2[^>]*>\s*<a[^>]*href="/([^"/]+/[^"/]+)"', block)
+        if not name:
+            continue
+        repo = name.group(1)
+        desc = re.search(r'<p class="col-9[^"]*">(.*?)</p>', block, re.S)
+        total = re.search(rf'href="/{re.escape(repo)}/stargazers"[^>]*>.*?([\d,]+)\s*</a>', block, re.S)
+        today = re.search(r'([\d,]+) stars today', block)
+        stars = ', '.join(s for s in [f'{today.group(1)} stelle oggi' if today else '', f'{total.group(1)} in totale' if total else ''] if s)
+        items.append({'title': repo, 'link': f'https://github.com/{repo}', 'date': now, 'source': source, 'kind': 'repo',
+                      'summary': f"{html_text(desc.group(1)) if desc else ''} ({stars})"})
+    return items
+
+
+def source_text(item):
+    if item.get('kind') == 'repo':
+        readme = fetch(f"https://api.github.com/repos/{item['title']}/readme", {'Accept': 'application/vnd.github.raw'})
+        return f"{item['title']}: {item['summary']}\n\n{html_text(readme)}"[:SOURCE_CHARS]
+    return html_text(fetch(item['link']))[:SOURCE_CHARS]
 
 
 def since(now, last_run):
@@ -132,28 +152,28 @@ def collect(start, now, seen):
     items = []
     for f in feeds:
         try:
-            got = parse_feed(fetch(f['url']), f['name'])
+            page = fetch(f['url'])
+            items += parse_trending(page, f['name'], now) if f.get('tipo') == 'github-trending' else parse_feed(page, f['name'])
         except Exception as e:
             print(f"feed {f['name']} non letto: {e}", file=sys.stderr)
-            continue
-        items += [i for i in got if about_ai(i)] if f.get('soloAI') else got
     fresh = {i['link']: i for i in items if i['link'] not in seen and start <= i['date'] <= now}
     return list(fresh.values())
 
 
-def pick(items):
+def pick(items, slots):
+    """Return the chosen items, or None when the model gave no usable answer."""
     if not items:
         return []
     listing = '\n'.join(f"{n}. [{i['source']}] {i['title']}: {i['summary'][:300]}" for n, i in enumerate(items))
     try:
         data = common.parse_json(common.llm([{'role': 'system', 'content': PICK_PROMPT},
-                                                     {'role': 'user', 'content': listing}], max_tokens=400))
+                                             {'role': 'user', 'content': listing}], max_tokens=400))
         ids = [c['id'] for c in data['scelte']]
-    except (ValueError, KeyError, TypeError) as e:
-        print(f'scelta non valida: {e}', file=sys.stderr)
-        return []
+    except Exception as e:
+        print(f'scelta non riuscita: {e}', file=sys.stderr)
+        return None
     ids = [n for n in dict.fromkeys(ids) if isinstance(n, int) and 0 <= n < len(items)]
-    return [items[n] for n in ids[:MAX_PICKS]]
+    return [items[n] for n in ids[:slots]]
 
 
 def validate(d):
@@ -176,8 +196,9 @@ def validate(d):
 
 
 def write_draft(item, text):
+    hint = REPO_HINT + '\n\n' if item.get('kind') == 'repo' else ''
     messages = [{'role': 'system', 'content': DRAFT_PROMPT},
-                {'role': 'user', 'content': f"Fonte: {item['source']}\nTitolo: {item['title']}\nURL: {item['link']}\n\nTesto della fonte:\n{text}"}]
+                {'role': 'user', 'content': f"{hint}Fonte: {item['source']}\nTitolo: {item['title']}\nURL: {item['link']}\n\nTesto della fonte:\n{text}"}]
     answer = common.llm(messages, max_tokens=2000)
     draft = validate(common.parse_json(answer))
     problems = slop.check(draft)
@@ -231,6 +252,7 @@ def run(now=None):
     seen_path = common.ROOT / 'pipeline' / 'state' / 'seen.json'
     pending_path = common.drafts_dir() / 'pending.json'
     last_run_path = common.ROOT / 'pipeline' / 'state' / 'last_run.txt'
+    retry_path = common.ROOT / 'pipeline' / 'state' / 'retry.json'
     seen, pending = common.read_json(seen_path, []), common.read_json(pending_path, {})
     common.drafts_dir().mkdir(parents=True, exist_ok=True)
     for slug, p in pending.items():
@@ -238,31 +260,41 @@ def run(now=None):
         if not p['messages'] and draft.exists():
             p['messages'] = try_send(slug, draft.read_text(encoding='utf-8'), p.get('problems', []))
             p['day'] = now.date().isoformat()
+    retry = [dict(i, date=datetime.fromisoformat(i['date'])) for i in common.read_json(retry_path, [])]
+    retry = [i for i in retry if i['link'] not in seen and now - i['date'] <= MAX_WINDOW][:MAX_PICKS]
     last_run = last_run_path.read_text(encoding='utf-8').strip() if last_run_path.exists() else None
-    items = collect(since(now, last_run), now, set(seen))
-    picks = pick(items)
+    retry_links = {i['link'] for i in retry}
+    items = [i for i in collect(since(now, last_run), now, set(seen)) if i['link'] not in retry_links]
+    slots = MAX_PICKS - len(retry)
+    picks = pick(items, slots) if slots else None
     taken = {p.stem for p in common.blog_dir().glob('*.md')} | set(pending)
-    for item in picks:
+    written, failed = [], []
+    for item in retry + (picks or []):
         try:
-            text = html_text(fetch(item['link']))[:SOURCE_CHARS]
-            draft, problems = write_draft(item, text)
+            draft, problems = write_draft(item, source_text(item))
         except Exception as e:
-            print(f"bozza non scritta per {item['link']}: {e}", file=sys.stderr)
+            print(f"bozza non scritta per {item['link']}, riprovo alla prossima corsa: {e}", file=sys.stderr)
+            failed.append(item)
             continue
+        written.append(item['link'])
         slug = common.slugify(draft['title'], taken)
         taken.add(slug)
         md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']})
         (common.drafts_dir() / f'{slug}.md').write_text(md, encoding='utf-8')
         pending[slug] = {'messages': try_send(slug, md, problems), 'day': now.date().isoformat(), 'problems': problems}
         common.write_json(pending_path, pending)
-    if not picks:
+    if picks == [] and not retry:
         try:
             common.telegram('sendMessage', chat_id=common.chat_id(), text=f'Nessuna notizia scelta stasera ({len(items)} candidate).')
         except Exception as e:
             print(f'Telegram non raggiungibile: {e}', file=sys.stderr)
+    failed_links = {i['link'] for i in failed}
+    if picks is not None:
+        written += [i['link'] for i in items if i['link'] not in failed_links]
+        last_run_path.write_text(now.isoformat() + '\n', encoding='utf-8')
     common.write_json(pending_path, pending)
-    common.write_json(seen_path, (seen + [i['link'] for i in items])[-1000:])
-    last_run_path.write_text(now.isoformat() + '\n', encoding='utf-8')
+    common.write_json(seen_path, (seen + list(dict.fromkeys(written)))[-1000:])
+    common.write_json(retry_path, [dict(i, date=i['date'].isoformat()) for i in failed])
 
 
 if __name__ == '__main__':
