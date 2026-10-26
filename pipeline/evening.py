@@ -32,12 +32,12 @@ Regole di stile, tutte obbligatorie:
 - Lunghezza del corpo: tra 300 e 550 parole."""
 
 PICK_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
-Ricevi una lista di notizie numerate. Scegli al massimo {MAX_PICKS} notizie davvero utili a un lettore italiano comune:
-qualcosa che può usare, che cambia un servizio che usa già, o che lo riguarda per sicurezza, privacy o costi.
-Scarta: ricerca senza ricadute pratiche, annunci per soli sviluppatori, eventi, nomine, finanziamenti, partnership generiche, servizi non disponibili in Italia.
-Le voci [GitHub] sono progetti open source di tendenza: sceglili solo se riguardano l'intelligenza artificiale
-e se una persona comune può usarli o ne sentirà parlare, non se servono solo a chi programma.
-Zero notizie è una risposta valida e frequente.
+Ricevi una lista di notizie numerate. Scegli da 1 a {MAX_PICKS} notizie che un lettore italiano curioso di tecnologia vorrebbe leggere:
+qualcosa che può usare o provare, che cambia un servizio che usa già, che lo riguarda per sicurezza, privacy, lavoro o costi, o di cui sentirà parlare.
+Scarta: ricerca senza ricadute pratiche, eventi, nomine, finanziamenti, partnership generiche, opinioni senza fatti nuovi.
+Le voci [GitHub] sono progetti open source di tendenza: sceglili se riguardano l'intelligenza artificiale e si possono spiegare
+in parole semplici, cosa fanno e chi può provarli, anche se per installarli serve un minimo di pratica.
+Rispondi con zero notizie solo se nessuna riguarda l'intelligenza artificiale.
 Rispondi solo con JSON: {{"scelte": [{{"id": 0, "motivo": "una frase"}}]}}"""
 
 DRAFT_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
