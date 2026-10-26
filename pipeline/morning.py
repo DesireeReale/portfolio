@@ -28,6 +28,14 @@ def answers(updates, pending):
     return decisions, notes
 
 
+def recorded(decisions_path, pending):
+    """Return ({slug: ('ok'|'no', None)}, {slug: note}) saved by the Telegram webhook."""
+    saved = common.read_json(decisions_path, {})
+    decisions = {s: (d['decision'], None) for s, d in saved.items() if s in pending and d.get('decision') in ('ok', 'no')}
+    notes = {s: d['note'] for s, d in saved.items() if s in pending and d.get('note')}
+    return decisions, notes
+
+
 def add_note(md, note):
     note = ' '.join(note.split())[:NOTE_CHARS]
     head, sep, body = md.partition('\n---\n')
@@ -77,8 +85,13 @@ def run(today=None):
     today = today or datetime.now(timezone.utc).date()
     pending_path = common.drafts_dir() / 'pending.json'
     pending = common.read_json(pending_path, {})
-    updates = common.telegram('getUpdates', allowed_updates=['message', 'callback_query'])
+    decisions_path = common.ROOT / 'pipeline' / 'state' / 'decisions.json'
+    webhook = common.telegram('getWebhookInfo').get('url')
+    updates = [] if webhook else common.telegram('getUpdates', allowed_updates=['message', 'callback_query'])
     decisions, notes = answers(updates, pending)
+    saved_decisions, saved_notes = recorded(decisions_path, pending)
+    decisions.update(saved_decisions)
+    notes.update(saved_notes)
     common.blog_dir().mkdir(parents=True, exist_ok=True)
     done = {'ok': [], 'no': [], 'wait': [], 'old': []}
     for slug in list(pending):
@@ -95,11 +108,13 @@ def run(today=None):
             done['old'].append(slug)
             if pending[slug]['messages']:
                 drop_buttons(slug, pending[slug]['messages'][-1])
-        if action:
+        if action and message:
             mark(slug, action, message)
         draft.unlink(missing_ok=True)
         del pending[slug]
     common.write_json(pending_path, pending)
+    if decisions_path.exists():
+        common.write_json(decisions_path, {s: d for s, d in common.read_json(decisions_path, {}).items() if s in pending})
     if any(done.values()):
         try:
             common.telegram('sendMessage', chat_id=common.chat_id(), text=summary(done))

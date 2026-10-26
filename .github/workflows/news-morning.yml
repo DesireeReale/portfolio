@@ -32,6 +32,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash
           mkdir -p public/blog
           git add pipeline/state pipeline/drafts content/blog public/blog
           git diff --cached --quiet || git commit -m "Notizie approvate del $(date -u +%F)"

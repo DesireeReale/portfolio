@@ -27,6 +27,26 @@ Le bozze marcate **DA CONTROLLARE** hanno problemi di stile rimasti dopo la risc
 
 Ogni push dei workflow fa ripartire il deploy su Netlify, quindi un articolo approvato è online pochi minuti dopo la corsa del mattino.
 
+## Conferme immediate
+
+Con il webhook attivo, quando premi Approva o Scarta Telegram ti risponde subito ("Ricevuto: approvata"), i pulsanti spariscono e sotto il messaggio compare "Approvata, esce domattina" o "Scartata"; se rispondi a una bozza, il bot ti scrive "Nota salvata". La funzione `netlify/functions/telegram.mjs` salva le scelte in `pipeline/state/decisions.json` con un commit `[skip netlify]` (niente deploy a ogni pulsante), e il giro del mattino le legge da lì. Senza webhook resta tutto come prima (`getUpdates`).
+
+Da creare, una volta sola:
+
+1. **Token GitHub.** Su GitHub: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Repository access: "Only select repositories" → `DesireeReale/portfolio`. Permissions → Repository permissions → Contents: "Read and write". Nient'altro.
+2. **Segreto del webhook.** Una stringa casuale (solo lettere, numeri, `_` e `-`), per esempio con `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+3. **Variabili su Netlify.** Nel sito su Netlify: Site configuration → Environment variables → Add a variable, con scope "Functions":
+   - `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`, gli stessi dei secret su GitHub;
+   - `TELEGRAM_WEBHOOK_SECRET`, il segreto del punto 2;
+   - `GITHUB_TOKEN`, il token del punto 1;
+   - `GITHUB_REPO` = `DesireeReale/portfolio`;
+   - `GITHUB_BRANCH` = `main`.
+4. **Attivazione.** Quando questo lavoro è su `main` e il deploy su Netlify è finito (la funzione deve esistere), dal tuo computer:
+   `TELEGRAM_BOT_TOKEN=... TELEGRAM_WEBHOOK_SECRET=... python pipeline/set_webhook.py`
+   Lo script stampa lo stato del webhook. Per tornare a `getUpdates`: `python pipeline/set_webhook.py --remove`.
+
+Le risposte arrivate prima dell'attivazione restano leggibili solo con `getUpdates`: attiva il webhook dopo un giro del mattino.
+
 ## Orari
 
 Il cron di GitHub usa l'ora UTC e non segue l'ora legale. La sera parte alle 18:30 UTC (19:30 d'inverno, 20:30 d'estate), la mattina alle 05:30 UTC (06:30 d'inverno, 07:30 d'estate). GitHub può partire con qualche minuto di ritardo.
