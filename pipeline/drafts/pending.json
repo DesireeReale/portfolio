@@ -18,5 +18,22 @@
       "corpo: frase vietata: \"incredibil\"",
       "non trovati nella fonte: 300, Web, Services, CEO, Presidente"
     ]
+  },
+  "tesla-punta-sull-autonomia-e-valuta-fusione-con": {
+    "messages": [
+      12,
+      13
+    ],
+    "day": "2026-10-26",
+    "problems": [
+      "non trovati nella fonte: 2023, Nord, GM, Livello"
+    ]
+  },
+  "google-lancia-polar-peaks-studenti-mappano-il": {
+    "messages": [
+      14
+    ],
+    "day": "2026-10-26",
+    "problems": []
   }
 }
