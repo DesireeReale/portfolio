@@ -1,6 +1,8 @@
 # Notizie automatiche del blog
 
-Ogni sera `evening.py` legge i feed in `feeds.json`, sceglie al massimo 3 notizie delle ultime 24 ore, scrive le bozze in `drafts/` e te le manda su Telegram con i pulsanti **Approva** e **Scarta**. Ogni mattina `morning.py` legge le tue risposte: le bozze approvate passano in `content/blog/`, quelle scartate vengono cancellate, quelle senza risposta restano un altro giorno e poi vengono cancellate.
+Ogni sera `evening.py` legge i feed in `feeds.json`, sceglie al massimo 3 notizie uscite dopo la corsa precedente (al massimo 72 ore prima, 24 ore al primo avvio), scrive le bozze in `drafts/` e te le manda su Telegram con i pulsanti **Approva** e **Scarta**. Ogni mattina `morning.py` legge le tue risposte: le bozze approvate passano in `content/blog/`, quelle scartate vengono cancellate, quelle senza risposta restano un altro giorno e poi vengono cancellate.
+
+I feed con `"soloAI": true` sono siti di tecnologia generale: da questi passano solo le notizie che parlano di intelligenza artificiale. Se Telegram non risponde, le bozze restano in `drafts/` e vengono rimandate la sera dopo.
 
 Se rispondi (con "Rispondi") al messaggio di una bozza, il tuo testo finisce in cima all'articolo come nota personale. Rispondi prima di premere Approva oppure entro la mattina dopo.
 

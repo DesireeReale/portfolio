@@ -1,4 +1,6 @@
+import gzip
 import json
+import re
 import sys
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -12,6 +14,11 @@ import slop
 MAX_PICKS = 3
 SOURCE_CHARS = 8000
 TELEGRAM_LIMIT = 4000
+DEFAULT_WINDOW = timedelta(hours=24)
+MAX_WINDOW = timedelta(hours=72)
+AI_ACRONYM = re.compile(r'\b(?:AI|IA)\b')
+AI_WORDS = re.compile(r'intelligenza artificiale|artificial intelligence|chatgpt|openai|anthropic|claude|gemini|copilot|'
+                      r'deepseek|mistral|grok|perplexity|chatbot|\bllm', re.I)
 ATOM = '{http://www.w3.org/2005/Atom}'
 
 STYLE = """Scrivi in italiano semplice, per lettori comuni che non sono tecnici. Dai del tu al lettore.
@@ -75,7 +82,10 @@ def html_text(html):
 def fetch(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (blog news bot)'})
     with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode(r.headers.get_content_charset() or 'utf-8', 'replace')
+        data = r.read()
+        if r.headers.get('Content-Encoding') == 'gzip':
+            data = gzip.decompress(data)
+        return data.decode(r.headers.get_content_charset() or 'utf-8', 'replace')
 
 
 def parse_date(s):
@@ -91,7 +101,7 @@ def parse_date(s):
 
 
 def parse_feed(xml, source):
-    root = ET.fromstring(xml)
+    root = ET.fromstring(xml.lstrip())
     items = []
     for it in root.iter('item'):
         items.append({'title': it.findtext('title', ''), 'link': it.findtext('link', '').strip(),
@@ -104,15 +114,30 @@ def parse_feed(xml, source):
     return [dict(i, source=source, title=i['title'].strip()) for i in items if i['link'] and i['date']]
 
 
-def collect(now, seen):
+def about_ai(item):
+    text = f"{item['title']} {item['summary']}"
+    return bool(AI_ACRONYM.search(text) or AI_WORDS.search(text))
+
+
+def since(now, last_run):
+    try:
+        last = datetime.fromisoformat(last_run)
+    except (TypeError, ValueError):
+        return now - DEFAULT_WINDOW
+    return min(max(last, now - MAX_WINDOW), now - timedelta(hours=1))
+
+
+def collect(start, now, seen):
     feeds = common.read_json(common.ROOT / 'pipeline' / 'feeds.json', [])
     items = []
     for f in feeds:
         try:
-            items += parse_feed(fetch(f['url']), f['name'])
+            got = parse_feed(fetch(f['url']), f['name'])
         except Exception as e:
             print(f"feed {f['name']} non letto: {e}", file=sys.stderr)
-    fresh = {i['link']: i for i in items if i['link'] not in seen and now - timedelta(hours=24) <= i['date'] <= now}
+            continue
+        items += [i for i in got if about_ai(i)] if f.get('soloAI') else got
+    fresh = {i['link']: i for i in items if i['link'] not in seen and start <= i['date'] <= now}
     return list(fresh.values())
 
 
@@ -193,13 +218,28 @@ def send_draft(slug, md, problems):
     return ids
 
 
+def try_send(slug, md, problems):
+    try:
+        return send_draft(slug, md, problems)
+    except Exception as e:
+        print(f'Telegram non raggiungibile, bozza {slug} tenuta per il prossimo invio: {e}', file=sys.stderr)
+        return []
+
+
 def run(now=None):
     now = now or datetime.now(timezone.utc)
     seen_path = common.ROOT / 'pipeline' / 'state' / 'seen.json'
     pending_path = common.drafts_dir() / 'pending.json'
+    last_run_path = common.ROOT / 'pipeline' / 'state' / 'last_run.txt'
     seen, pending = common.read_json(seen_path, []), common.read_json(pending_path, {})
     common.drafts_dir().mkdir(parents=True, exist_ok=True)
-    items = collect(now, set(seen))
+    for slug, p in pending.items():
+        draft = common.drafts_dir() / f'{slug}.md'
+        if not p['messages'] and draft.exists():
+            p['messages'] = try_send(slug, draft.read_text(encoding='utf-8'), p.get('problems', []))
+            p['day'] = now.date().isoformat()
+    last_run = last_run_path.read_text(encoding='utf-8').strip() if last_run_path.exists() else None
+    items = collect(since(now, last_run), now, set(seen))
     picks = pick(items)
     taken = {p.stem for p in common.blog_dir().glob('*.md')} | set(pending)
     for item in picks:
@@ -213,11 +253,16 @@ def run(now=None):
         taken.add(slug)
         md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']})
         (common.drafts_dir() / f'{slug}.md').write_text(md, encoding='utf-8')
-        pending[slug] = {'messages': send_draft(slug, md, problems), 'day': now.date().isoformat()}
+        pending[slug] = {'messages': try_send(slug, md, problems), 'day': now.date().isoformat(), 'problems': problems}
         common.write_json(pending_path, pending)
     if not picks:
-        common.telegram('sendMessage', chat_id=common.chat_id(), text=f'Nessuna notizia scelta stasera ({len(items)} candidate).')
+        try:
+            common.telegram('sendMessage', chat_id=common.chat_id(), text=f'Nessuna notizia scelta stasera ({len(items)} candidate).')
+        except Exception as e:
+            print(f'Telegram non raggiungibile: {e}', file=sys.stderr)
+    common.write_json(pending_path, pending)
     common.write_json(seen_path, (seen + [i['link'] for i in items])[-1000:])
+    last_run_path.write_text(now.isoformat() + '\n', encoding='utf-8')
 
 
 if __name__ == '__main__':
