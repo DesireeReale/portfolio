@@ -18,7 +18,7 @@ Le bozze marcate **DA CONTROLLARE** hanno problemi di stile rimasti dopo la risc
    - OpenRouter: chiave su <https://openrouter.ai/keys>. `LLM_BASE_URL` = `https://openrouter.ai/api/v1`, `LLM_MODEL` un modello con suffisso `:free`.
 2. **Bot Telegram.** Su Telegram scrivi a `@BotFather`, invia `/newbot`, scegli nome e username. Il token che ti risponde è `TELEGRAM_BOT_TOKEN`.
 3. **Chat id.** Scrivi un messaggio qualsiasi al tuo bot, poi apri nel browser `https://api.telegram.org/bot<TOKEN>/getUpdates`. Il numero in `"chat":{"id": ...}` è `TELEGRAM_CHAT_ID`. Il bot accetta risposte solo da questa chat.
-4. **Secret su GitHub.** Nel repository: Settings → Secrets and variables → Actions → New repository secret. Crea `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+4. **Secret su GitHub.** Nel repository: Settings → Secrets and variables → Actions → New repository secret. Crea `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Facoltativo: `LLM_DRAFT_MODEL`, un modello più capace usato solo per scrivere le bozze (per esempio `gemini-3.8-flash`); se manca, si usa `LLM_MODEL` anche per le bozze.
 5. **Workflow.** I workflow programmati partono solo dal branch principale del repository: unisci questo lavoro su `main`. Per una prova subito: Actions → "Notizie della sera" → Run workflow.
 
 Ogni push dei workflow fa ripartire il deploy su Netlify, quindi un articolo approvato è online pochi minuti dopo la corsa del mattino.

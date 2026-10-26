@@ -1,5 +1,6 @@
 import gzip
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -13,6 +14,7 @@ import slop
 
 MAX_PICKS = 3
 SOURCE_CHARS = 8000
+DRAFT_TOKENS = 2500
 MIN_SOURCE = 600
 TELEGRAM_LIMIT = 4000
 DEFAULT_WINDOW = timedelta(hours=24)
@@ -22,9 +24,17 @@ HF_SKIP = re.compile(r'uncensor|nsfw|nude|porn|undress|hentai', re.I)
 ROUNDUP = re.compile(r'gift guide|round-?up|\b(hottest|best|top)\b.*\b(gadgets|devices|wearables|deals|gifts)\b'
                      r'|\b(gadgets?|devices?) (for|to buy)\b|you should know|\btop \d+\b'
                      r'|^\d+ (ways|reasons|things|tools|apps|gadgets|tips|tricks|best|ai)\b', re.I)
-REPO_HINT = """Questa fonte è un progetto open source su GitHub o Hugging Face e il testo è il suo README o la sua scheda.
-Spiega cosa fa il progetto, per chi è utile e se una persona comune può usarlo:
-se c'è un'app o un sito pronto, oppure se serve installarlo e saper usare il terminale."""
+REPO_CHARS = 12000
+REPO_SECTIONS = re.compile(r'feature|what it does|overview|about|highlight|demo|install|setup|getting started|quick ?start'
+                           r'|usage|how to use|run|download|requirement|prerequisite|hardware|system|gpu|caratteristic|installa|requisit|uso', re.I)
+REPO_HINT = """Questa fonte è un progetto open source su GitHub o Hugging Face e il testo è il suo README o la sua scheda, in Markdown.
+Spiega cosa fa il progetto in concreto, funzione per funzione, e se una persona comune può usarlo:
+se c'è un'app, un sito o una demo pronta, dillo e spiega come aprirla.
+Installazione e uso:
+- Se la fonte contiene i passi per installarlo o usarlo, scrivi una sezione con i passi veri come elenco numerato.
+  Metti i comandi in blocchi di codice ``` copiandoli esattamente dalla fonte, senza modificarli e senza aggiungerne.
+  Subito prima dei passi elenca i requisiti scritti nella fonte: sistema operativo, scheda video e memoria video, spazio su disco.
+- Se la fonte non contiene i passi, non scrivere nessuna sezione su installazione o uso e non dire genericamente "si scarica" o "serve il terminale"."""
 ATOM = '{http://www.w3.org/2005/Atom}'
 
 STYLE = """Scrivi in italiano semplice, per lettori comuni che non sono tecnici. Dai del tu al lettore.
@@ -54,13 +64,24 @@ Scrivi un articolo sulla notizia che ricevi, basandoti solo sul testo della font
 
 {STYLE}
 
+Titoletti:
+- Ogni titoletto "## " dice esattamente cosa c'è nel paragrafo sotto, con la cosa concreta: "Clona una voce da 10 secondi di audio", non "Cosa cambia per te".
+- Vietati i titoletti generici: "Cos'è", "Cosa cambia per...", "Perché è importante", "Panoramica", "Il contesto", "In breve", "I vantaggi", "Cosa sapere".
+- Se scrivi un titoletto su installazione o uso, sotto devono esserci passi numerati o comandi in un blocco di codice.
+
+Aziende:
+- "perAzienda" contiene solo usi concreti per una piccola azienda o un professionista: un lavoro preciso che può fare con questo strumento,
+  oppure un costo, un rischio o un obbligo di legge che lo riguarda.
+- Non sono usi aziendali: la licenza del software, "si può integrare nei flussi di lavoro", "può aumentare la produttività" e frasi simili.
+- Se non c'è un uso concreto scritto nella fonte, "perAzienda" è una lista vuota e "forBusiness" è false.
+
 Rispondi solo con JSON con queste chiavi:
 - "title": titolo in italiano, al massimo 80 caratteri, descrittivo.
 - "description": una frase che dice cosa cambia per il lettore.
 - "category": una tra {', '.join(c for c in common.CATEGORIES if c != 'funziona-davvero')}.
-- "forBusiness": true se la notizia interessa anche piccole aziende e professionisti, altrimenti false.
+- "forBusiness": true solo se "perAzienda" non è vuota, altrimenti false.
 - "perTe": da 2 a 4 frasi brevi su cosa cambia per il lettore.
-- "perAzienda": da 0 a 3 frasi brevi su cosa cambia per una piccola azienda; lista vuota se non c'entra.
+- "perAzienda": da 0 a 3 frasi brevi con usi aziendali concreti, secondo le regole sopra; lista vuota negli altri casi.
 - "body": il corpo in Markdown, con titoletti "## ", senza ripetere il titolo e senza link."""
 
 
@@ -160,12 +181,36 @@ def card_text(readme):
     return readme.replace('Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference', '')
 
 
+def readme_text(md, limit=REPO_CHARS):
+    """Return the README as Markdown: the intro plus the feature, install, usage and requirement sections first."""
+    md = re.sub(r'<!--.*?-->', '', md, flags=re.S)
+    md = re.sub(r'\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)|!\[[^\]]*\]\([^)]*\)', '', md)
+    md = re.sub(r'<[^>]+>', '', md)
+    md = re.sub(r'\n{3,}', '\n\n', md).strip()
+    parts, fence = [[]], False
+    for line in md.split('\n'):
+        fence ^= line.lstrip().startswith('```')
+        if not fence and re.match(r'#{1,6} ', line) and parts[-1]:
+            parts.append([])
+        parts[-1].append(line)
+    sections = ['\n'.join(p).strip() for p in parts]
+    keep = [0] + [n for n, s in enumerate(sections) if n and REPO_SECTIONS.search(s.split('\n', 1)[0])]
+    keep += [n for n in range(len(sections)) if n not in keep]
+    out, used = {}, 0
+    for n in keep:
+        s = sections[n][:4000]
+        if used + len(s) > limit:
+            continue
+        out[n], used = s, used + len(s) + 2
+    return '\n\n'.join(out[n] for n in sorted(out))
+
+
 def source_text(item):
     if item.get('readme'):
-        return f"{item['title']}: {item['summary']}\n\n{html_text(card_text(fetch(item['readme'])))}"[:SOURCE_CHARS]
+        return f"{item['title']}: {item['summary']}\n\n{readme_text(card_text(fetch(item['readme'])))}"
     if item.get('kind') == 'repo':
         readme = fetch(f"https://api.github.com/repos/{item['title']}/readme", {'Accept': 'application/vnd.github.raw'})
-        return f"{item['title']}: {item['summary']}\n\n{html_text(readme)}"[:SOURCE_CHARS]
+        return f"{item['title']}: {item['summary']}\n\n{readme_text(readme)}"
     return html_text(fetch(item['link']))[:SOURCE_CHARS]
 
 
@@ -228,7 +273,7 @@ def validate(d):
         d[k] = [p.strip() for p in d[k]]
     if not 2 <= len(d['perTe']) <= 4:
         raise ValueError('"perTe" deve avere da 2 a 4 punti')
-    d['forBusiness'] = bool(d['forBusiness']) or d['category'] == 'per-la-tua-azienda'
+    d['forBusiness'] = bool(d['perAzienda'])
     return d
 
 
@@ -236,14 +281,14 @@ def write_draft(item, text):
     hint = REPO_HINT + '\n\n' if item.get('kind') == 'repo' else ''
     messages = [{'role': 'system', 'content': DRAFT_PROMPT},
                 {'role': 'user', 'content': f"{hint}Fonte: {item['source']}\nTitolo: {item['title']}\nURL: {item['link']}\n\nTesto della fonte:\n{text}"}]
-    answer = common.llm(messages, max_tokens=2000)
+    answer = common.llm(messages, max_tokens=DRAFT_TOKENS, model=os.environ.get('LLM_DRAFT_MODEL'))
     draft = validate(common.parse_json(answer))
     problems = slop.check(draft)
     if problems:
         messages += [{'role': 'assistant', 'content': answer},
                      {'role': 'user', 'content': 'Riscrivi l\'articolo correggendo questi problemi, stesso formato JSON:\n- ' + '\n- '.join(problems)}]
         try:
-            draft = validate(common.parse_json(common.llm(messages, max_tokens=2000)))
+            draft = validate(common.parse_json(common.llm(messages, max_tokens=DRAFT_TOKENS, model=os.environ.get('LLM_DRAFT_MODEL'))))
             problems = slop.check(draft)
         except (ValueError, TypeError) as e:
             problems.append(f'riscrittura non valida: {e}')

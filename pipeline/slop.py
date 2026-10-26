@@ -20,6 +20,12 @@ TRIAD = re.compile(r"\b([a-zà-ù]+), ([a-zà-ù]+),? e ([a-zà-ù]+)\b")
 EMOJI = re.compile('[\U0001F000-\U0001FAFF☀-➿⭐⬆↔-↪]')
 MAX_WORDS_SENTENCE = 30
 MIN_WORDS, MAX_WORDS = 250, 600
+CODE_BLOCK = re.compile(r'```[^\n]*\n(.*?)```', re.S)
+INLINE_CODE = re.compile(r'`[^`\n]+`')
+LICENCE = re.compile(r'licenz|licens|\b(a?gpl|mit|apache|bsd)\b', re.I)
+GENERIC_HEADING = re.compile(r"(cos'è|cosa cambia|perché (è|conta|importa)|panoramica|il contesto|in breve|i vantaggi|vantaggi"
+                             r"|cosa (c'è da |devi )?sapere|cosa significa|le novità|introduzione|conclusion|i dettagli)\b", re.I)
+HOWTO_HEADING = re.compile(r'install|scaric|come (si )?(usa|prova|avvi)|come usarl|come provarl|primi passi|avvio', re.I)
 
 
 def plain(text):
@@ -66,13 +72,32 @@ def check(draft):
               *(('perTe', p) for p in draft['perTe']), *(('perAzienda', p) for p in draft['perAzienda']), ('corpo', draft['body'])]
     problems = []
     for field, text in fields:
-        problems += [f'{field}: {p}' for p in text_problems(plain(text), field != 'corpo')]
+        problems += [f'{field}: {p}' for p in text_problems(plain(prose(text)), field != 'corpo')]
     full = '\n'.join(text for _, text in fields)
     if full.count('—') > 1:
         problems.append(f"troppi trattini lunghi (—): {full.count('—')}")
-    words = len(re.findall(r'\w+', plain(draft['body'])))
+    words = len(re.findall(r'\w+', plain(prose(draft['body']))))
     if not MIN_WORDS <= words <= MAX_WORDS:
         problems.append(f'lunghezza del testo {words} parole (servono {MIN_WORDS}-{MAX_WORDS})')
+    problems += [f'perAzienda: la licenza non è un uso aziendale: "{p[:60]}"' for p in draft['perAzienda'] if LICENCE.search(p)]
+    return problems + structure_problems(draft['body'])
+
+
+def prose(text):
+    return INLINE_CODE.sub('', CODE_BLOCK.sub('', text))
+
+
+def structure_problems(body):
+    problems = []
+    for section in re.split(r'^(?=## )', body, flags=re.M):
+        heading, _, content = section.partition('\n')
+        if not heading.startswith('## '):
+            continue
+        heading = heading[3:].strip()
+        if GENERIC_HEADING.match(heading):
+            problems.append(f'titoletto generico: "{heading}"')
+        if HOWTO_HEADING.search(heading) and not (re.search(r'^\s*\d+\.\s', content, re.M) or '```' in content):
+            problems.append(f'titoletto "{heading}" senza passi numerati o comandi')
     return problems
 
 
@@ -100,10 +125,13 @@ def number_forms(n):
 
 def facts(draft, source_text):
     """Return numbers and capitalised names in the draft that do not appear in the source text."""
-    text = plain('\n'.join([draft['title'], draft['description'], *draft['perTe'], *draft['perAzienda'], draft['body']]))
-    lines = list(sentences(re.sub(r'[*_`]', '', text)))
+    raw = plain('\n'.join([draft['title'], draft['description'], *draft['perTe'], *draft['perAzienda'], draft['body']]))
+    lines = list(sentences(re.sub(r'[*_`]', '', prose(raw))))
     source_text = plain(source_text)
-    missing = []
+    flat = ' '.join(source_text.split())
+    code = [l for block in CODE_BLOCK.findall(raw) for l in block.splitlines()]
+    code += [c.strip('`') for c in INLINE_CODE.findall(CODE_BLOCK.sub('', raw))]
+    missing = [f'comando "{c}"' for c in dict.fromkeys(' '.join(l.split()) for l in code) if c and c not in flat]
     for n in dict.fromkeys(NUMBER.findall('\n'.join(lines))):
         if not any(re.search(rf'(?<![\d.,]){re.escape(f)}(?![\d]|[.,]\d)', source_text) for f in number_forms(n)):
             missing.append(n)

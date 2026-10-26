@@ -51,12 +51,12 @@ def post_json(url, payload, headers=None, timeout=120, tries=4):
             time.sleep(min(retry_after(e) or 15 * 2 ** n, 300))
 
 
-def llm(messages, max_tokens):
+def llm(messages, max_tokens, model=None):
     global _last_llm_call
     time.sleep(max(0, _last_llm_call + LLM_GAP - time.monotonic()))
     try:
         data = post_json(os.environ['LLM_BASE_URL'].rstrip('/') + '/chat/completions',
-                         {'model': os.environ['LLM_MODEL'], 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4},
+                         {'model': model or os.environ['LLM_MODEL'], 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4},
                          {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}, timeout=300)
     finally:
         _last_llm_call = time.monotonic()
