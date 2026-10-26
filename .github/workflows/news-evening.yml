@@ -1,0 +1,38 @@
+name: Notizie della sera
+
+on:
+  schedule:
+    # Ora UTC: in Italia sono le 20:30 in estate (CEST, UTC+2) e 19:30 in inverno (CET, UTC+1).
+    - cron: '30 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news-pipeline
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python pipeline/evening.py
+        env:
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Commit e push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pipeline/state pipeline/drafts content/blog
+          git diff --cached --quiet || git commit -m "Bozze notizie del $(date -u +%F)"
+          git pull --rebase
+          git push

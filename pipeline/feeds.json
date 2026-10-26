@@ -1,0 +1,7 @@
+[
+  {"name": "OpenAI", "url": "https://openai.com/news/rss.xml"},
+  {"name": "Anthropic", "url": "https://www.anthropic.com/news/rss.xml"},
+  {"name": "Google", "url": "https://blog.google/technology/ai/rss/"},
+  {"name": "Google DeepMind", "url": "https://deepmind.google/blog/rss.xml"},
+  {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml"}
+]
