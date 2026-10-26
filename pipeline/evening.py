@@ -19,7 +19,9 @@ DEFAULT_WINDOW = timedelta(hours=24)
 MAX_WINDOW = timedelta(hours=72)
 CHOICE_NOTE = 'La scelta viene letta dal giro del mattino.'
 HF_SKIP = re.compile(r'uncensor|nsfw|nude|porn|undress|hentai', re.I)
-ROUNDUP = re.compile(r'hottest|gift guide|round-?up|\bbest\b.*\b(gadgets?|devices?|deals?)\b|\b(gadgets?|devices?) (for|to buy)\b|you should know|\btop \d+\b|^\d+ ', re.I)
+ROUNDUP = re.compile(r'gift guide|round-?up|\b(hottest|best|top)\b.*\b(gadgets|devices|wearables|deals|gifts)\b'
+                     r'|\b(gadgets?|devices?) (for|to buy)\b|you should know|\btop \d+\b'
+                     r'|^\d+ (ways|reasons|things|tools|apps|gadgets|tips|tricks|best|ai)\b', re.I)
 REPO_HINT = """Questa fonte è un progetto open source su GitHub o Hugging Face e il testo è il suo README o la sua scheda.
 Spiega cosa fa il progetto, per chi è utile e se una persona comune può usarlo:
 se c'è un'app o un sito pronto, oppure se serve installarlo e saper usare il terminale."""

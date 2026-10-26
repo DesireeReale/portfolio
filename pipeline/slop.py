@@ -24,7 +24,7 @@ MIN_WORDS, MAX_WORDS = 250, 600
 
 def plain(text):
     text = re.sub(r'\]\([^)]*\)', ']', text)
-    return text.replace('’', "'").replace('‘', "'")
+    return text.replace('’', "'").replace('‘', "'").replace('\xa0', ' ').replace(' ', ' ')
 
 
 def sentences(text):
@@ -76,8 +76,21 @@ def check(draft):
     return problems
 
 
-ALWAYS_OK = {'AI', 'IA', 'Italia', 'Europa', 'UE', 'Unione', 'Europea', 'Ue'}
+ALWAYS_OK = {'AI', 'IA', 'Italia', 'Europa', 'UE', 'Ue', 'Unione Europea'}
+TRANSLATIONS = {
+    'Stati Uniti': ['United States', 'US', 'U.S.', 'America'], 'USA': ['US', 'U.S.', 'United States'],
+    'Regno Unito': ['United Kingdom', 'UK', 'Britain'], 'Cina': ['China'], 'Giappone': ['Japan'],
+    'Germania': ['Germany'], 'Francia': ['France'], 'Spagna': ['Spain'], 'Corea': ['Korea'], 'Svizzera': ['Switzerland'],
+    'Paesi Bassi': ['Netherlands', 'Dutch'], 'Olanda': ['Netherlands', 'Holland', 'Dutch'], 'Londra': ['London'],
+    'Parigi': ['Paris'], 'Pechino': ['Beijing'], 'Bruxelles': ['Brussels'], 'Ginevra': ['Geneva'],
+    'Casa Bianca': ['White House'], 'Nazioni Unite': ['United Nations', 'UN'], 'ONU': ['UN', 'United Nations'],
+    'Commissione Europea': ['European Commission'], 'Parlamento Europeo': ['European Parliament'],
+    'Banca Centrale Europea': ['European Central Bank', 'ECB'], 'BCE': ['ECB'], 'PIL': ['GDP'],
+    'Università': ['University'], 'Governo': ['government'], 'Ministero': ['Ministry', 'Department'],
+    'Dipartimento': ['Department'], 'Congresso': ['Congress'], 'Senato': ['Senate'], 'Corte Suprema': ['Supreme Court'],
+}
 NAME = re.compile(r"[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ]*")
+EDGE = '.,;:()[]"«»“”\''
 NUMBER = re.compile(r'\d+(?:[.,]\d+)*')
 
 
@@ -89,14 +102,52 @@ def facts(draft, source_text):
     """Return numbers and capitalised names in the draft that do not appear in the source text."""
     text = plain('\n'.join([draft['title'], draft['description'], *draft['perTe'], *draft['perAzienda'], draft['body']]))
     lines = list(sentences(re.sub(r'[*_`]', '', text)))
+    source_text = plain(source_text)
     missing = []
     for n in dict.fromkeys(NUMBER.findall('\n'.join(lines))):
         if not any(re.search(rf'(?<![\d.,]){re.escape(f)}(?![\d]|[.,]\d)', source_text) for f in number_forms(n)):
             missing.append(n)
     for s in lines:
-        for w in s.split()[1:]:
-            w = w.strip('.,;:()[]"«»\'').split("'")[-1]
-            name = NAME.match(w)
-            if name and name.group(0) not in ALWAYS_OK and name.group(0) not in source_text and name.group(0) not in missing:
-                missing.append(name.group(0))
+        for words, at_start in name_runs(s):
+            missing += [w for w in unknown_names(words, at_start, source_text) if w not in missing]
     return missing
+
+
+def name_runs(sentence):
+    """Yield runs of consecutive capitalised words, and whether the run opens the sentence."""
+    run, at_start = [], False
+    for k, tok in enumerate(sentence.split()):
+        core = tok.strip(EDGE)
+        tail = core.split("'")[-1]
+        m = NAME.match(tail)
+        if run and (not m or tail != core):
+            yield run, at_start
+            run = []
+        if not m:
+            continue
+        if not run:
+            at_start = k == 0 and tail == core
+        run.append(m.group(0))
+        if m.group(0) != tail or tok.rstrip(EDGE) != tok:
+            yield run, at_start
+            run = []
+    if run:
+        yield run, at_start
+
+
+def known(phrase, source_text):
+    low = source_text.lower()
+    return phrase in ALWAYS_OK or phrase in source_text or any(t.lower() in low for t in TRANSLATIONS.get(phrase, []))
+
+
+def unknown_names(words, at_start, source_text):
+    out, i = [], 0
+    while i < len(words):
+        j = next((j for j in range(len(words), i, -1) if known(' '.join(words[i:j]), source_text)), None)
+        if j:
+            i = j
+            continue
+        if not (i == 0 and at_start):
+            out.append(words[i])
+        i += 1
+    return out
