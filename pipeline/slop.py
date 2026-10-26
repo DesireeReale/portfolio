@@ -113,6 +113,7 @@ TRANSLATIONS = {
     'Banca Centrale Europea': ['European Central Bank', 'ECB'], 'BCE': ['ECB'], 'PIL': ['GDP'],
     'Università': ['University'], 'Governo': ['government'], 'Ministero': ['Ministry', 'Department'],
     'Dipartimento': ['Department'], 'Congresso': ['Congress'], 'Senato': ['Senate'], 'Corte Suprema': ['Supreme Court'],
+    'Presidente': ['President', 'chair'], 'CEO': ['CEO', 'chief executive'], 'Borsa': ['stock', 'exchange', 'IPO'],
 }
 NAME = re.compile(r"[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ]*")
 EDGE = '.,;:()[]"«»“”\''

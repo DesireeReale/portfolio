@@ -1,4 +1,5 @@
 import gzip
+import html
 import json
 import os
 import re
@@ -15,9 +16,9 @@ import slop
 MAX_PICKS = 3
 MIN_PICKS = 2
 RANK_SIZE = 6
-PICK_TOKENS = 900
+PICK_TOKENS = 8000
 SOURCE_CHARS = 8000
-DRAFT_TOKENS = 2500
+DRAFT_TOKENS = 6000
 MIN_SOURCE = 600
 TELEGRAM_LIMIT = 4000
 DEFAULT_WINDOW = timedelta(hours=24)
@@ -61,9 +62,13 @@ Scarta sempre le rassegne di gadget e prodotti di consumo da comprare.
 Le voci [GitHub] e [Hugging Face] sono progetti open source di tendenza: sceglili se riguardano l'intelligenza artificiale e si possono spiegare
 in parole semplici, cosa fanno e chi può provarli, anche se per installarli serve un minimo di pratica.
 Esempi graditi: un robot open source da costruire, un modello che si prova nel browser, uno strumento che gira sul proprio computer.
-Segna "consigliata": true per le notizie che meritano davvero un articolo, oltre alle prime {MIN_PICKS}.
-Solo se nessuna notizia della lista riguarda l'intelligenza artificiale, rispondi con "nessuna_ai": true e classifica vuota.
-Rispondi solo con JSON: {{"nessuna_ai": false, "classifica": [{{"id": 0, "motivo": "una frase", "consigliata": true}}]}}"""
+Formato della risposta: solo un oggetto JSON, senza testo prima o dopo, con due chiavi.
+- "nessuna_ai": true solo se nessuna notizia della lista riguarda l'intelligenza artificiale, altrimenti false.
+- "classifica": una lista di almeno {MIN_PICKS} e al massimo {RANK_SIZE} oggetti, dal più interessante. Ogni oggetto ha:
+  "id", il numero della notizia nella lista ricevuta;
+  "motivo", perché interessa a un lettore italiano, scritto da te con il fatto concreto della notizia;
+  "consigliata", true se merita davvero un articolo, altrimenti false.
+Gli "id" devono essere numeri presenti nella lista, tutti diversi."""
 
 DRAFT_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
 Scrivi un articolo sulla notizia che ricevi, basandoti solo sul testo della fonte.
@@ -117,13 +122,13 @@ def html_text(html):
     return ' '.join(p.parts)
 
 
-def fetch(url, headers=None):
+def fetch(url, headers=None, raw=False):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (blog news bot)', **(headers or {})})
     with urllib.request.urlopen(req, timeout=30) as r:
         data = r.read()
         if r.headers.get('Content-Encoding') == 'gzip':
             data = gzip.decompress(data)
-        return data.decode(r.headers.get_content_charset() or 'utf-8', 'replace')
+        return data if raw else data.decode(r.headers.get_content_charset() or 'utf-8', 'replace')
 
 
 def parse_date(s):
@@ -149,7 +154,7 @@ def parse_feed(xml, source):
         items.append({'title': e.findtext(ATOM + 'title', ''), 'link': link or '',
                       'date': parse_date(e.findtext(ATOM + 'published') or e.findtext(ATOM + 'updated')),
                       'summary': html_text(e.findtext(ATOM + 'summary') or e.findtext(ATOM + 'content') or '')})
-    return [dict(i, source=source, title=i['title'].strip()) for i in items if i['link'] and i['date']]
+    return [dict(i, source=source, title=' '.join(html.unescape(i['title']).split())) for i in items if i['link'] and i['date']]
 
 
 def parse_trending(html, source, now):
@@ -233,8 +238,8 @@ def collect(start, now, seen):
     items = []
     for f in feeds:
         try:
-            page = fetch(f['url'])
             tipo = f.get('tipo', '')
+            page = fetch(f['url'], raw=not tipo)
             if tipo == 'github-trending':
                 items += parse_trending(page, f['name'], now)
             elif tipo.startswith('hf-'):
@@ -248,29 +253,47 @@ def collect(start, now, seen):
     return list(fresh.values())
 
 
+def rank_ids(ranking, size):
+    """Return [(id, entry)] for valid, distinct ids in model order."""
+    out, ids = [], set()
+    for c in ranking if isinstance(ranking, list) else []:
+        n = c.get('id') if isinstance(c, dict) else None
+        if isinstance(n, str) and n.strip().isdigit():
+            n = int(n)
+        if isinstance(n, int) and 0 <= n < size and n not in ids:
+            ids.add(n)
+            out.append((n, c))
+    return out
+
+
 def pick(items, slots):
     """Return the chosen items, or None when the model gave no usable answer."""
     if not items:
         return []
     listing = '\n'.join(f"{n}. [{i['source']}] {i['title']}: {i['summary'][:300]}" for n, i in enumerate(items))
-    try:
-        data = common.parse_json(common.llm([{'role': 'system', 'content': PICK_PROMPT},
-                                             {'role': 'user', 'content': listing}], max_tokens=PICK_TOKENS))
-        ranking = [c for c in data.get('classifica', []) if isinstance(c, dict)]
-    except Exception as e:
-        print(f'scelta non riuscita: {e}', file=sys.stderr)
-        return None
-    if data.get('nessuna_ai') is True:
-        print('scelta: il modello dice che nessuna notizia riguarda l\'AI')
-        return []
+    messages = [{'role': 'system', 'content': PICK_PROMPT}, {'role': 'user', 'content': listing}]
+    need = min(MIN_PICKS, slots, len(items))
+    for attempt in range(2):
+        try:
+            answer = common.llm(messages, max_tokens=PICK_TOKENS, json_mode=True)
+            data = common.parse_json(answer)
+        except Exception as e:
+            print(f'scelta non riuscita: {e}', file=sys.stderr)
+            return None
+        if data.get('nessuna_ai') is True:
+            print('scelta: il modello dice che nessuna notizia riguarda l\'AI')
+            return []
+        ranking = rank_ids(data.get('classifica'), len(items))
+        if len(ranking) >= need or attempt:
+            break
+        print(f'classifica con {len(ranking)} notizie valide, chiedo di nuovo', file=sys.stderr)
+        messages += [{'role': 'assistant', 'content': answer},
+                     {'role': 'user', 'content': f'La classifica deve avere almeno {MIN_PICKS} notizie con "id" diversi presi dalla lista. Rispondi di nuovo, solo JSON.'}]
     if not ranking:
         print('scelta non riuscita: classifica vuota senza "nessuna_ai"', file=sys.stderr)
         return None
     seen, chosen = set(), []
-    for c in ranking:
-        n = c.get('id')
-        if not isinstance(n, int) or not 0 <= n < len(items) or n in seen:
-            continue
+    for n, c in ranking:
         seen.add(n)
         take = len(chosen) < min(MIN_PICKS, slots) or (c.get('consigliata') is True and len(chosen) < slots)
         print(f"{'SCELTA ' if take else 'scartata'} #{len(seen)} [{items[n]['source']}] {items[n]['title']}: {c.get('motivo', '')}")
@@ -302,10 +325,10 @@ def draft_llm(messages):
     model = os.environ.get('LLM_DRAFT_MODEL')
     if model and model != os.environ.get('LLM_MODEL'):
         try:
-            return common.llm(messages, max_tokens=DRAFT_TOKENS, model=model, tries=1)
+            return common.llm(messages, max_tokens=DRAFT_TOKENS, model=model, tries=1, json_mode=True)
         except Exception as e:
             print(f'{model} non ha risposto ({e}), uso {os.environ.get("LLM_MODEL")} per questa bozza', file=sys.stderr)
-    return common.llm(messages, max_tokens=DRAFT_TOKENS)
+    return common.llm(messages, max_tokens=DRAFT_TOKENS, json_mode=True)
 
 
 def write_draft(item, text):

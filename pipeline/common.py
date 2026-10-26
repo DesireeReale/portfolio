@@ -55,8 +55,8 @@ class LLMError(RuntimeError):
     pass
 
 
-def llm(messages, max_tokens, model=None, tries=2):
-    """Return the model's text; raise LLMError after `tries` timeouts or empty answers."""
+def llm(messages, max_tokens, model=None, tries=2, json_mode=False):
+    """Return the model's text; raise LLMError after `tries` timeouts, empty or truncated answers."""
     global _last_llm_call
     model = model or os.environ['LLM_MODEL']
     base = os.environ['LLM_BASE_URL'].rstrip('/')
@@ -67,8 +67,12 @@ def llm(messages, max_tokens, model=None, tries=2):
     payload = {'model': model, 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4}
     if len(models) > 1:
         payload['models'] = models
+    if json_mode:
+        payload['response_format'] = {'type': 'json_object'}
     if 'generativelanguage.googleapis.com' in base and 'lite' not in model:
         payload['reasoning_effort'] = 'low'
+    if 'openrouter.ai' in base:
+        payload['reasoning'] = {'effort': 'low'}
     for n in range(tries):
         time.sleep(max(0, _last_llm_call + LLM_GAP - time.monotonic()))
         try:
@@ -83,18 +87,31 @@ def llm(messages, max_tokens, model=None, tries=2):
             _last_llm_call = time.monotonic()
         choice = (data.get('choices') or [{}])[0]
         content = ((choice.get('message') or {}).get('content') or '').strip()
-        if content:
-            return content
         reason = choice.get('finish_reason')
-    raise LLMError(f'risposta vuota dal modello {model} dopo {tries} tentativi (finish_reason={reason}); '
-                   f'se è "length", il ragionamento ha consumato max_tokens={max_tokens}')
+        answered = data.get('model', model)
+        if content and reason != 'length':
+            print(f'modello {answered}: {len(content)} caratteri, {(data.get("usage") or {}).get("completion_tokens")} token')
+            return content
+        problem = 'troncata (finish_reason=length)' if content else f'vuota (finish_reason={reason})'
+        if data.get('error'):
+            problem += f", errore: {str(data['error'])[:200]}"
+    raise LLMError(f'risposta {problem} dal modello {answered} dopo {tries} tentativi; '
+                   f'se è "length", ragionamento e testo hanno superato max_tokens={max_tokens}')
 
 
 def parse_json(text):
-    start, end = text.find('{'), text.rfind('}')
-    if start < 0 or end < start:
-        raise ValueError('nessun oggetto JSON nella risposta')
-    return json.loads(text[start:end + 1])
+    """Return the largest JSON object in text, skipping code fences and any reasoning around it."""
+    decoder, found = json.JSONDecoder(), []
+    for m in re.finditer(r'\{', text):
+        try:
+            obj, end = decoder.raw_decode(text, m.start())
+        except ValueError:
+            continue
+        if isinstance(obj, dict):
+            found.append((end - m.start(), obj))
+    if not found:
+        raise ValueError(f'nessun oggetto JSON nella risposta ({len(text)} caratteri, inizio: {text[:80]!r})')
+    return max(found, key=lambda f: f[0])[1]
 
 
 def telegram(method, **params):
