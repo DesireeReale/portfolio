@@ -60,9 +60,13 @@ def llm(messages, max_tokens, model=None, tries=2):
     global _last_llm_call
     model = model or os.environ['LLM_MODEL']
     base = os.environ['LLM_BASE_URL'].rstrip('/')
-    if 'openrouter.ai' in base and not model.endswith(':free'):
+    models = [m.strip() for m in model.split(',') if m.strip()]
+    if 'openrouter.ai' in base and not all(m.endswith(':free') for m in models):
         raise LLMError(f'su OpenRouter sono ammessi solo modelli gratuiti (":free"), non {model}')
+    model = models[0]
     payload = {'model': model, 'messages': messages, 'max_tokens': max_tokens, 'temperature': 0.4}
+    if len(models) > 1:
+        payload['models'] = models
     if 'generativelanguage.googleapis.com' in base and 'lite' not in model:
         payload['reasoning_effort'] = 'low'
     for n in range(tries):
