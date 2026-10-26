@@ -12,7 +12,6 @@
  *   forBusiness: true           (facoltativo, mostra l'articolo nel blocco "Per la tua azienda")
  *   featured: true              (facoltativo, candidato ad apertura e "I più letti")
  *   verdict: meta               (facoltativo, si | no | meta, solo per funziona-davvero)
- *   example: true               (facoltativo, mostra l'avviso "Articolo di esempio")
  *   perTe:
  *     - Punto "cosa cambia per te"
  *   perAzienda:                 (facoltativo)
@@ -169,7 +168,6 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; line-height: 
 .verdict::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .v-yes { color: var(--yes); } .v-no { color: var(--no); } .v-mid { color: var(--mid); }
 .tags { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.ex { font: 500 11px/1 var(--mono); padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--fg); }
 .cats .biz-link { color: var(--accent); font-weight: 600; }
 .biz { margin-top: 44px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
 .biz-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; margin-bottom: 18px; }
@@ -181,7 +179,6 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; line-height: 
 .biz-grid p { margin: 0; color: var(--muted); font-size: 14px; }
 .impact.work { background: var(--surface-2); border: 1px solid var(--line); }
 @media (max-width: 760px) { .biz-grid { grid-template-columns: 1fr; } }
-.example { background: var(--accent-soft); color: var(--fg); font-size: 13px; text-align: center; padding: 8px 16px; }
 header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; }
@@ -260,7 +257,7 @@ footer a:hover { color: var(--fg); }
 
 const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='14' fill='%2338bdf8'/%3E%3Cpath d='M18 20 l10 8 l-10 8 M32 38 h10' stroke='%230b1220' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 
-function page({ title, description, path, type = 'website', jsonLd, active, notice, noindex, main }) {
+function page({ title, description, path, type = 'website', jsonLd, active, noindex, main }) {
   const canonical = SITE + path;
   const nav = Object.entries(CATEGORIES)
     .map(([slug, c]) => {
@@ -299,7 +296,7 @@ ${CSS}
 </style>
 </head>
 <body>
-${notice ? `<div class="example">${notice}</div>\n` : ''}<header>
+<header>
   <div class="wrap">
     <div class="bar">
       <a class="logo" href="/"><i>&gt;_</i> ${AUTHOR}</a>
@@ -321,8 +318,7 @@ ${main}
 }
 
 const verdict = (a) => (a.verdict ? `<span class="verdict ${VERDICTS[a.verdict][1]}">${VERDICTS[a.verdict][0]}</span>` : '');
-const exBadge = (a) => (a.example ? '<span class="ex">Articolo di esempio</span>' : '');
-const tags = (a) => `<div class="tags"><span class="cat">${esc(CATEGORIES[a.category].name)}</span>${verdict(a)}${exBadge(a)}</div>`;
+const tags = (a) => `<div class="tags"><span class="cat">${esc(CATEGORIES[a.category].name)}</span>${verdict(a)}</div>`;
 
 const item = (a) => `<a class="item" href="${url(a)}">${thumb(a)}<div>${tags(a)}<h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><span class="meta">${dayMonth(a.date)} · ${a.minutes} min</span></div></a>`;
 
@@ -449,7 +445,6 @@ function articlePage(a) {
     type: 'article',
     jsonLd,
     active: a.category,
-    notice: a.example ? 'Articolo di esempio: contenuto dimostrativo, non una notizia reale.' : '',
     main: `<article class="article">
   <a class="back" href="/blog/">← Tutti gli articoli</a>
   <div style="margin-top:18px">${tags(a)}</div>
