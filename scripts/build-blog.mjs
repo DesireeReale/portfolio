@@ -22,6 +22,7 @@
  *   sources:
  *     - title: Nome della fonte
  *       url: https://...
+ *       note: cosa contiene  (facoltativo, mostrato accanto al link)
  *   ---
  *   Corpo in Markdown.
  *
@@ -222,7 +223,7 @@ const cover = (a) => `<div class="thumb cover" aria-hidden="true"><span class="c
 const thumb = (a) => a.image ? `<div class="thumb"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : cover(a);
 const figure = (a) => a.image
   ? `<figure class="figure"><img src="${esc(a.image)}" alt="">${a.imageCredit ? `<figcaption>Immagine: ${a.imageCreditUrl ? `<a href="${esc(a.imageCreditUrl)}" rel="noopener">${esc(a.imageCredit)}</a>` : esc(a.imageCredit)}</figcaption>` : ''}</figure>`
-  : cover(a);
+  : '';
 
 
 const CSS = `
@@ -321,7 +322,6 @@ aside { display: flex; flex-direction: column; gap: 28px; }
 .back { font-size: 14px; color: var(--muted); }
 .article h1 { font-size: clamp(30px, 4.4vw, 44px); margin: 14px 0 16px; }
 .article .dek { font-size: 19px; line-height: 1.55; color: var(--muted); margin: 0 0 18px; }
-.article .cover { margin: 26px 0; }
 .article h2 { font-size: 28px; margin: 56px 0 14px; scroll-margin-top: 130px; }
 .article h3 { font-size: 21px; margin: 36px 0 10px; }
 .article p, .article li { font-size: 17px; line-height: 1.7; text-align: left; }
@@ -341,16 +341,19 @@ aside { display: flex; flex-direction: column; gap: 28px; }
 .callout > :last-child { margin-bottom: 0; }
 .article .callout-label { font: 700 13px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--callout-label); margin: 0 0 8px; }
 .callout ol, .callout ul { padding-left: 22px; }
-.toc { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 18px; margin: 28px 0 36px; }
-.article .toc-label { font: 600 13px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-.toc ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
-.article .toc li { font-size: 17px; line-height: 1.45; }
+.toc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin: 22px 0 36px; }
+.article .toc-label { font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.toc ol { margin: 0; padding-left: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 4px 28px; }
+.article .toc li { font-size: 15px; line-height: 1.4; }
 .toc a:hover { color: var(--accent-text); }
 .impact { background: var(--accent-soft); border-radius: 14px; padding: 20px 22px; margin: 26px 0; }
 .impact h2 { margin-top: 0; font-size: 19px; }
 .impact ul { margin: 0; padding-left: 20px; }
 .sources { font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 34px; }
-.sources a { text-decoration: underline; }
+.article .sources-label { font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 8px; }
+.sources ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.article .sources li { font-size: 14px; line-height: 1.45; }
+.sources a { text-decoration: underline; color: var(--fg); }
 .author { display: flex; gap: 12px; align-items: center; margin-top: 28px; padding: 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; }
 .author i { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font: 700 16px var(--display); font-style: normal; flex: none; }
 footer { border-top: 1px solid var(--line); padding-block: 28px; font-size: 14px; color: var(--muted); }
@@ -554,7 +557,7 @@ function articlePage(a) {
 ${a.html}
   </div>
   ${bullets('E per la tua azienda', a.perAzienda, 'impact work')}
-  ${a.sources.length ? `<p class="sources">Fonti: ${a.sources.map((s) => `<a href="${esc(s.url)}" rel="noopener">${esc(s.title)}</a>`).join(' · ')}</p>` : ''}
+  ${a.sources.length ? `<section class="sources" aria-labelledby="sources-title"><p class="sources-label" id="sources-title">Fonti</p><ul>${a.sources.map((s) => `<li><a href="${esc(s.url)}" rel="noopener">${esc(s.title)}</a>${s.note ? ` – ${esc(s.note)}` : ''}</li>`).join('')}</ul></section>` : ''}
   <div class="author"><i>DR</i><div><strong>${AUTHOR}</strong><br><span class="meta">AI &amp; LLM Engineer. Spiego l'intelligenza artificiale in modo semplice e costruisco agenti e automazioni.</span></div></div>
 </article>`,
   });

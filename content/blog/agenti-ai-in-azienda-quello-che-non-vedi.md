@@ -17,44 +17,64 @@ perAzienda:
 sources:
   - title: "OpenAI: incidente di sicurezza durante la valutazione dei modelli"
     url: https://openai.com/it-IT/index/hugging-face-model-evaluation-security-incident/
+    note: "il racconto dell'incidente fatto da OpenAI"
   - title: "Hugging Face: cronologia tecnica dell'intrusione"
     url: https://huggingface.co/blog/agent-intrusion-technical-timeline
+    note: "la cronologia ora per ora dal lato di Hugging Face"
   - title: "Cloud Security Alliance: OpenAI sandbox escape e Hugging Face"
     url: https://labs.cloudsecurityalliance.org/research/csa-research-note-openai-sandbox-escape-huggingface-20260723/
+    note: "analisi indipendente dell'incidente"
   - title: "Anthropic: Investigating three incidents in our cybersecurity evaluations"
     url: https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals
+    note: "i tre incidenti raccontati da Anthropic"
   - title: "Anthropic: An alignment assessment of the UK AISI cybertesting incident"
     url: https://www.anthropic.com/research/alignment-assessment-ukaisi
+    note: "l'analisi tecnica del caso con l'AISI britannico"
   - title: "Anthropic: Investigating unintended model actions in our evaluations and internal use"
     url: https://www.anthropic.com/research/investigating-unintended-model-actions
+    note: "le azioni non previste viste da Anthropic nei test e nell'uso interno"
   - title: "Reuters: Claude e i conteggi dei voti della Georgia"
     url: https://www.thestar.com.my/tech/tech-news/2026/10/26/anthropic039s-claude-accessed-georgia-state-vote-count-data-behind-paywall
+    note: "articolo Reuters ripreso da The Star"
   - title: "Cohere: comportamento preoccupante di un modello open-weight"
     url: https://cohere.com/blog/concerning-behaviour-popular-open-weight-ai-model
+    note: "il caso descritto da Cohere"
   - title: "OpenAI: Securing our frontier model training environment"
     url: https://openai.com/index/securing-our-frontier-model-training-environment/
+    note: "come OpenAI ha cambiato le protezioni dopo l'incidente"
   - title: "Satya Nadella: Models as Insider Risks in the Super Intelligence Era"
     url: https://x.com/satyanadella/status/2108931348857827686
+    note: "il post di Nadella sui modelli come rischio interno"
   - title: "GitHub, anthropics/claude-code #46253: Subagent observability gap"
     url: https://github.com/anthropics/claude-code/issues/46253
+    note: "la segnalazione degli sviluppatori sui subagenti"
   - title: "InfoWorld: Codex Multi-Agent V2 e la trasparenza degli agenti"
     url: https://www.infoworld.com/article/4197328/codex-multi-agent-v2-update-raises-developer-concerns-over-agent-transparency.html
+    note: "articolo sulle critiche degli sviluppatori"
   - title: "Cerbos: PocketOS, database cancellato in 9 secondi"
     url: https://cerbos.dev/blog/ai-coding-agent-deleted-a-production-database-in-9-seconds
+    note: "ricostruzione del caso PocketOS"
   - title: "AWS Security Bulletin AWS-2025-015: Amazon Q Developer per VS Code"
     url: https://aws.amazon.com/security/security-bulletins/AWS-2025-015/
+    note: "il bollettino di sicurezza ufficiale di AWS"
   - title: "Anthropic: Agent Skills, considerazioni di sicurezza"
     url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+    note: "documentazione ufficiale sulle skill"
   - title: "Simon Willison: The lethal trifecta for AI agents"
     url: https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
+    note: "l'articolo che ha dato il nome al problema"
   - title: "Invariant Labs: vulnerabilità del server MCP di GitHub"
     url: https://invariantlabs.ai/blog/mcp-github-vulnerability
+    note: "la ricerca che ha trovato la vulnerabilità"
   - title: "Cloud Security Alliance: The Visibility Gap in Autonomous AI Agents"
     url: https://cloudsecurityalliance.org/articles/the-visibility-gap-in-autonomous-ai-agents
+    note: "analisi sul controllo degli agenti"
   - title: "Gartner: oltre il 40% dei progetti agentici cancellati entro il 2027"
     url: https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027
+    note: "comunicato con la previsione di Gartner"
   - title: "OWASP: Top 10 for Agentic Applications"
     url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications/
+    note: "l'elenco dei rischi principali secondo OWASP"
 ---
 Tra luglio e ottobre 2026 OpenAI, Anthropic e Cohere hanno pubblicato resoconti di ==agenti AI usciti dai confini== che qualcuno aveva fissato per loro. Erano test e lavori interni, su modelli che i clienti non usano in quella forma.
 
