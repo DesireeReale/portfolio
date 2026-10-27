@@ -1,6 +1,6 @@
 ---
 title: "Agenti AI in azienda: il problema è quello che non vedi"
-description: "Cinque incidenti reali tra il 2025 e il 2026 hanno la stessa forma: l'agente aveva più accesso del necessario e nessuno vedeva cosa faceva."
+description: "Sei incidenti reali tra il 2025 e il 2026 hanno la stessa forma: l'agente aveva più accesso del necessario e nessuno vedeva cosa faceva."
 date: 2026-10-27
 category: per-la-tua-azienda
 image: /blog/agenti-ai-in-azienda-quello-che-non-vedi/cover.png
@@ -15,6 +15,12 @@ perAzienda:
   - "Cancellazioni, deploy, pagamenti e invii all'esterno vanno approvati da una persona."
   - "Serve un registro di ogni chiamata agli strumenti, subagenti compresi, con il nome di chi l'ha avviata."
 sources:
+  - title: "OpenAI: incidente di sicurezza durante la valutazione dei modelli"
+    url: https://openai.com/it-IT/index/hugging-face-model-evaluation-security-incident/
+  - title: "Hugging Face: cronologia tecnica dell'intrusione"
+    url: https://huggingface.co/blog/agent-intrusion-technical-timeline
+  - title: "Cloud Security Alliance: OpenAI sandbox escape e Hugging Face"
+    url: https://labs.cloudsecurityalliance.org/research/csa-research-note-openai-sandbox-escape-huggingface-20260723/
   - title: "Cerbos: PocketOS, database cancellato in 9 secondi"
     url: https://cerbos.dev/blog/ai-coding-agent-deleted-a-production-database-in-9-seconds
   - title: "ABC News: Railway recupera i backup di PocketOS"
@@ -62,7 +68,56 @@ A luglio 2026 InfoWorld ha raccontato un problema simile con Codex di OpenAI. Co
 
 La visibilità serve a ricostruire cosa è successo. Per evitare il danno serve un blocco. Se il divieto esiste solo come frase nel prompt, tipo "non toccare la produzione", è il modello a decidere se rispettarlo. Un permesso vero lo applica il sistema, e l'agente non può scavalcarlo.
 
-## Cinque casi reali
+## Sei casi reali
+
+### OpenAI e Hugging Face, luglio 2026
+
+OpenAI stava misurando le capacità di attacco informatico di GPT‑5.6 Sol e di un prototipo interno più capace, con un test chiamato ExploitGym. Per la prova i modelli giravano con i rifiuti sulle attività cyber ridotti. L'ambiente non aveva accesso a Internet, salvo un proxy per installare pacchetti.
+
+I modelli hanno trovato una falla zero-day in quel proxy, Artifactory, e sono arrivati a un nodo collegato a Internet. Hanno dedotto che Hugging Face potesse ospitare le soluzioni del test. Con credenziali rubate e altre falle hanno ottenuto l'esecuzione di codice sui server di Hugging Face e hanno letto un database di produzione.
+
+Hugging Face ha registrato oltre 17.000 azioni tra il 9 e il 13 luglio, e ha rilevato e bloccato l'attività da sola. Il 16 luglio ha reso pubblico l'attacco come opera di un agente autonomo di origine sconosciuta. Il 21 luglio OpenAI ha comunicato che erano i suoi modelli, "iperconcentrati" sull'obiettivo del test.
+
+<style>.dg { width: 100%; height: auto; display: block; border-radius: 14px; border: 1px solid var(--line); } .dg-paper { fill: var(--surface); } .dg-zone { font: 600 13px var(--mono); letter-spacing: 0.14em; fill: var(--muted); } .dg-seen { fill: none; stroke: var(--muted); stroke-dasharray: 6 5; } .dg-hidden { fill: var(--surface-2); stroke: var(--line); } .dg-line { fill: none; stroke: var(--muted); stroke-width: 1.5; } .dg-line-a { fill: none; stroke: var(--accent); stroke-width: 2; } .dg-dash { stroke-dasharray: 5 4; } .dg-mk { fill: var(--muted); } .dg-mk-a { fill: var(--accent); } .dg-lab { font: 500 12px var(--mono); letter-spacing: 0.08em; fill: var(--muted); } .dg-node { fill: var(--surface); stroke: var(--muted); } .dg-chip { fill: var(--surface); stroke: var(--line); } .dg-chip-a { fill: var(--accent-soft); stroke: var(--accent); } .dg-name { font: 600 22px var(--text); fill: var(--fg); } .dg-sub { font: 400 15px var(--mono); fill: var(--muted); } .dg-code { font: 500 17px var(--mono); fill: var(--fg); } .dg-code-a { font: 600 17px var(--mono); fill: var(--accent); } .dg-tag, .dg-tag-a { font: 600 11px var(--mono); letter-spacing: 0.12em; fill: var(--muted); } .dg-tag-a { fill: var(--accent); } .dg-set { fill: var(--fg); fill-opacity: 0.04; stroke: var(--muted); stroke-width: 1.5; } .dg-sweet { fill: var(--accent); fill-opacity: 0.22; } .dg-name-a { font: 700 18px var(--text); fill: var(--fg); } .dg-s .dg-name { font-size: 16px; } .dg-s .dg-sub { font-size: 12px; } .dg-narrow { max-width: 480px; margin-inline: auto; }</style>
+<figure class="figure">
+<svg class="dg dg-s dg-narrow" viewBox="0 0 440 472" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="hf-title hf-desc">
+<title id="hf-title">Il percorso dei modelli OpenAI fino a Hugging Face</title>
+<desc id="hf-desc">Dal test ExploitGym senza accesso a Internet, attraverso una falla nel proxy dei pacchetti e un nodo collegato alla rete, fino al database di produzione di Hugging Face.</desc>
+<defs>
+<marker id="hf-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="dg-mk"/></marker>
+<marker id="hf-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="dg-mk-a"/></marker>
+</defs>
+<rect width="440" height="472" class="dg-paper"/>
+<line x1="120" y1="104" x2="120" y2="140" class="dg-line" marker-end="url(#hf-arrow)"/>
+<line x1="120" y1="220" x2="120" y2="256" class="dg-line" marker-end="url(#hf-arrow)"/>
+<line x1="120" y1="336" x2="120" y2="372" class="dg-line-a" marker-end="url(#hf-arrow-accent)"/>
+<rect x="132" y="110" width="88" height="24" class="dg-paper"/>
+<text x="140" y="127" class="dg-lab">ZERO-DAY</text>
+<rect x="132" y="226" width="160" height="24" class="dg-paper"/>
+<text x="140" y="243" class="dg-lab">MOVIMENTO LATERALE</text>
+<rect x="132" y="342" width="112" height="24" class="dg-paper"/>
+<text x="140" y="359" class="dg-lab">CREDENZIALI</text>
+<rect x="24" y="24" width="392" height="80" rx="6" class="dg-node"/>
+<text x="40" y="46" class="dg-tag">OPENAI · SANDBOX</text>
+<text x="40" y="70" class="dg-name">Test ExploitGym</text>
+<text x="40" y="92" class="dg-sub">nessun accesso a Internet</text>
+<rect x="24" y="140" width="392" height="80" rx="6" class="dg-node"/>
+<text x="40" y="162" class="dg-tag">OPENAI</text>
+<text x="40" y="186" class="dg-name">Proxy dei pacchetti</text>
+<text x="40" y="208" class="dg-sub">Artifactory, l'unica via verso fuori</text>
+<rect x="24" y="256" width="392" height="80" rx="6" class="dg-node"/>
+<text x="40" y="278" class="dg-tag">OPENAI</text>
+<text x="40" y="302" class="dg-name">Nodo collegato a Internet</text>
+<text x="40" y="324" class="dg-sub">raggiunto scalando i privilegi</text>
+<rect x="24" y="372" width="392" height="80" rx="6" class="dg-chip-a"/>
+<text x="40" y="394" class="dg-tag-a">HUGGING FACE</text>
+<text x="40" y="418" class="dg-name">Server di produzione</text>
+<text x="40" y="440" class="dg-sub">cercava le soluzioni del test</text>
+</svg>
+<figcaption>Schema basato sui resoconti di <a href="https://openai.com/it-IT/index/hugging-face-model-evaluation-security-incident/" rel="noopener">OpenAI</a> e <a href="https://huggingface.co/blog/agent-intrusion-technical-timeline" rel="noopener">Hugging Face</a></figcaption>
+</figure>
+
+**La lezione:** l'isolamento era un'intenzione di progetto, e il proxy era una porta aperta. La Cloud Security Alliance raccomanda di bloccare il traffico in uscita a livello di rete e di provare davvero a uscire dall'ambiente, invece di affidarsi ai rifiuti del modello.
 
 ### PocketOS e Cursor, aprile 2026
 
@@ -102,7 +157,6 @@ Invariant Labs ha dimostrato un attacco tramite il server MCP ufficiale di GitHu
 
 L'agente legge i repository privati dell'utente e ne pubblica il contenuto in una pull request sul repository pubblico. Nella demo l'utente aveva impostato "Consenti sempre" per le chiamate agli strumenti.
 
-<style>.dg { width: 100%; height: auto; display: block; border-radius: 14px; border: 1px solid var(--line); } .dg-paper { fill: var(--surface); } .dg-zone { font: 600 13px var(--mono); letter-spacing: 0.14em; fill: var(--muted); } .dg-seen { fill: none; stroke: var(--muted); stroke-dasharray: 6 5; } .dg-hidden { fill: var(--surface-2); stroke: var(--line); } .dg-line { fill: none; stroke: var(--muted); stroke-width: 1.5; } .dg-line-a { fill: none; stroke: var(--accent); stroke-width: 2; } .dg-dash { stroke-dasharray: 5 4; } .dg-mk { fill: var(--muted); } .dg-mk-a { fill: var(--accent); } .dg-lab { font: 500 12px var(--mono); letter-spacing: 0.08em; fill: var(--muted); } .dg-node { fill: var(--surface); stroke: var(--muted); } .dg-chip { fill: var(--surface); stroke: var(--line); } .dg-chip-a { fill: var(--accent-soft); stroke: var(--accent); } .dg-name { font: 600 22px var(--text); fill: var(--fg); } .dg-sub { font: 400 15px var(--mono); fill: var(--muted); } .dg-code { font: 500 17px var(--mono); fill: var(--fg); } .dg-code-a { font: 600 17px var(--mono); fill: var(--accent); } .dg-tag, .dg-tag-a { font: 600 11px var(--mono); letter-spacing: 0.12em; fill: var(--muted); } .dg-tag-a { fill: var(--accent); } .dg-set { fill: var(--fg); fill-opacity: 0.04; stroke: var(--muted); stroke-width: 1.5; } .dg-sweet { fill: var(--accent); fill-opacity: 0.22; } .dg-name-a { font: 700 18px var(--text); fill: var(--fg); } .dg-s .dg-name { font-size: 16px; } .dg-s .dg-sub { font-size: 12px; }</style>
 <figure class="figure">
 <svg class="dg dg-s" viewBox="0 0 640 352" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="mcp-title mcp-desc">
 <title id="mcp-title">L'attacco al server MCP di GitHub</title>
@@ -138,8 +192,6 @@ L'agente legge i repository privati dell'utente e ne pubblica il contenuto in un
 </figure>
 
 **La lezione:** secondo i ricercatori il difetto non sta nel codice del server, quindi una patch di GitHub non basta. Ogni sessione dell'agente va limitata ai soli repository che gli servono.
-
-Su EchoLeak e Amazon Q non è stato confermato alcun danno reale. Restano prove concrete di cosa può succedere.
 
 ## Le skill prese da GitHub sono codice di altri
 
