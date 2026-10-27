@@ -294,7 +294,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .lead p { color: var(--muted); margin: 0 0 12px; }
 .thumb { aspect-ratio: 16 / 10; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cover { container-type: inline-size; place-items: start; align-content: space-between; padding: 7cqi; background: var(--surface); }
+.cover { container-type: inline-size; place-items: start; align-content: space-between; padding: 7%; background: var(--surface); }
 .cover b { font: 800 22px/1.08 var(--display); font-size: 8.5cqi; letter-spacing: -0.03em; color: var(--fg); text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .cover .cat { font-size: max(9px, 3.4cqi); }
 .figure { margin: 26px 0; }
