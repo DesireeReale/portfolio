@@ -16,7 +16,7 @@
  *   featured: true              (facoltativo, articolo d'apertura della home)
  *   verdict: meta               (facoltativo, si | no | meta, solo per funziona-davvero)
  *   perTe:
- *     - Punto "cosa cambia per te"
+ *     - Punto del box "Da sapere"
  *   perAzienda:                 (facoltativo)
  *     - Punto "e per la tua azienda"
  *   sources:
@@ -37,6 +37,8 @@
  *
  * Categorie: intelligenza-artificiale, guide-e-tutorial, app-e-strumenti, ai-in-locale,
  * big-tech, sicurezza, funziona-davvero, per-la-tua-azienda.
+ * Colore dell'articolo: giallo (azzurro nel tema scuro) per l'AI, verde per app-e-strumenti e ai-in-locale,
+ * azzurro (rosso nel tema scuro) per sicurezza; si imposta con `tone` in CATEGORIES.
  */
 import { readFileSync, readdirSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -99,10 +101,10 @@ const OG_IMAGE = `${SITE}/og.svg`;
 const CATEGORIES = {
   'intelligenza-artificiale': { name: 'Intelligenza artificiale', intro: "Le novità sull'intelligenza artificiale spiegate in modo semplice." },
   'guide-e-tutorial': { name: 'Guide e tutorial', intro: "Guide passo per passo per usare l'AI nella vita di tutti i giorni." },
-  'app-e-strumenti': { name: 'App e strumenti', intro: 'Le app e gli strumenti AI provati e confrontati.' },
-  'ai-in-locale': { name: 'AI in locale', intro: "Usare l'AI sul tuo computer, senza mandare i dati nel cloud." },
+  'app-e-strumenti': { name: 'App e strumenti', intro: 'Le app e gli strumenti AI provati e confrontati.', tone: 'tool' },
+  'ai-in-locale': { name: 'AI in locale', intro: "Usare l'AI sul tuo computer, senza mandare i dati nel cloud.", tone: 'tool' },
   'big-tech': { name: 'Big Tech', intro: 'Cosa fanno le grandi aziende tecnologiche e cosa cambia per te.' },
-  'sicurezza': { name: 'Sicurezza', intro: "Truffe, privacy e sicurezza nell'era dell'AI." },
+  'sicurezza': { name: 'Sicurezza', intro: "Truffe, privacy e sicurezza nell'era dell'AI.", tone: 'sec' },
   'funziona-davvero': { name: 'Funziona davvero?', intro: "La rubrica che mette alla prova le promesse dell'AI, con un verdetto chiaro." },
   'per-la-tua-azienda': { name: 'Per la tua azienda', intro: "L'AI applicata al lavoro: strumenti, costi, regole e casi reali." },
 };
@@ -243,6 +245,13 @@ const CSS = `
   --fg: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --accent-soft: rgba(56,189,248,0.12); --on-accent: #020617;
   --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc; --mark: rgba(56,189,248,0.30);
   --yes: #4ade80; --no: #f87171; --mid: #fbbf24; color-scheme: dark }
+.tone-tool { --accent: #16a34a; --accent-soft: rgba(34,197,94,0.12); --accent-text: #15803d; --callout-bg: #dcfce7; --callout-border: #16a34a; --callout-label: #166534; --mark: rgba(34,197,94,0.30); }
+.tone-sec { --accent: #0284c7; --accent-soft: rgba(14,165,233,0.12); --accent-text: #0369a1; --callout-bg: #e0f2fe; --callout-border: #0284c7; --callout-label: #075985; --mark: rgba(56,189,248,0.36); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tone-tool { --accent: #4ade80; --accent-soft: rgba(74,222,128,0.11); --accent-text: #4ade80; --callout-bg: #0b2a1a; --callout-border: #4ade80; --callout-label: #86efac; --mark: rgba(74,222,128,0.28); }
+  :root:not([data-theme="light"]) .tone-sec { --accent: #ff5c5c; --accent-soft: rgba(255,92,92,0.16); --accent-text: #ff8080; --callout-bg: #3a1216; --callout-border: #ff5c5c; --callout-label: #ffa3a3; --mark: rgba(255,92,92,0.48); } }
+:root[data-theme="dark"] .tone-tool { --accent: #4ade80; --accent-soft: rgba(74,222,128,0.11); --accent-text: #4ade80; --callout-bg: #0b2a1a; --callout-border: #4ade80; --callout-label: #86efac; --mark: rgba(74,222,128,0.28); }
+:root[data-theme="dark"] .tone-sec { --accent: #ff5c5c; --accent-soft: rgba(255,92,92,0.16); --accent-text: #ff8080; --callout-bg: #3a1216; --callout-border: #ff5c5c; --callout-label: #ffa3a3; --mark: rgba(255,92,92,0.48); }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--text); }
 a { color: inherit; text-decoration: none; }
@@ -532,14 +541,14 @@ function articlePage(a) {
     jsonLd,
     image: ogImage,
     active: a.category,
-    main: `<article class="article">
+    main: `<article class="article${CATEGORIES[a.category].tone ? ` tone-${CATEGORIES[a.category].tone}` : ''}">
   <a class="back" href="/blog/">← Tutti gli articoli</a>
   <div style="margin-top:18px">${tags(a)}</div>
   <h1>${esc(a.title)}</h1>
   <p class="dek">${esc(a.description)}</p>
   <span class="meta">${AUTHOR} · <time datetime="${a.date.toISOString()}">${fullDate(a.date)}</time> · ${a.minutes} min di lettura</span>
   ${figure(a)}
-  ${bullets('In breve, cosa cambia per te', a.perTe, 'impact')}
+  ${bullets('Da sapere', a.perTe, 'impact')}
   ${tocNav(a.toc)}
   <div class="body">
 ${a.html}
