@@ -24,7 +24,7 @@ MIN_WORDS, MAX_WORDS = 250, 600
 REPEATED_LABEL = 3
 CODE_BLOCK = re.compile(r'```[^\n]*\n(.*?)```', re.S)
 INLINE_CODE = re.compile(r'`[^`\n]+`')
-ALERT = re.compile(r'^[ \t]*>[ \t]*\[!(?:PUNTO|REGOLE|ATTENZIONE)\][ \t]*$', re.M)
+ALERT = re.compile(r'^([ \t]*>[ \t]*)\[!(?:PUNTO|REGOLE|ATTENZIONE)\]', re.M)
 LICENCE = re.compile(r'licenz|licens|\b(a?gpl|mit|apache|bsd)\b', re.I)
 GENERIC_HEADING = re.compile(r"(cos'è|cosa cambia|perché (è|conta|importa)|panoramica|il contesto|in breve|i vantaggi|vantaggi"
                              r"|cosa (c'è da |devi )?sapere|cosa significa|le novità|introduzione|conclusion|i dettagli)\b", re.I)
@@ -100,7 +100,7 @@ def check(draft, outlet=None):
 
 
 def prose(text):
-    return ALERT.sub('', INLINE_CODE.sub('', CODE_BLOCK.sub('', text)))
+    return ALERT.sub(r'\1', INLINE_CODE.sub('', CODE_BLOCK.sub('', text)))
 
 
 def structure_problems(body):
