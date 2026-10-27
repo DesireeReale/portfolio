@@ -13,7 +13,7 @@
  *   imageCredit: Fonte         (facoltativo, mostrato sotto l'immagine)
  *   imageCreditUrl: https://...
  *   forBusiness: true           (facoltativo, mostra l'articolo nel blocco "Per la tua azienda")
- *   featured: true              (facoltativo, candidato ad apertura e "I più letti")
+ *   featured: true              (facoltativo, articolo d'apertura della home)
  *   verdict: meta               (facoltativo, si | no | meta, solo per funziona-davvero)
  *   perTe:
  *     - Punto "cosa cambia per te"
@@ -250,13 +250,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 aside { display: flex; flex-direction: column; gap: 28px; }
 .box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
 .box h2 { font-size: 17px; margin-bottom: 14px; }
-.top { list-style: none; margin: 0; padding: 0; counter-reset: n; display: grid; gap: 14px; }
-.top li { counter-increment: n; display: grid; grid-template-columns: 26px 1fr; font-size: 15px; line-height: 1.4; }
-.top li::before { content: counter(n); font: 700 15px var(--display); color: var(--accent); }
-.top a:hover, .start a:hover { color: var(--accent); }
 .news p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
 .news form { display: grid; gap: 10px; }
 .news input { min-height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 12px; font: inherit; }
+.start a:hover { color: var(--accent); }
 .start a { display: block; padding-block: 9px; border-bottom: 1px solid var(--line); font-size: 15px; }
 .start a:last-child { border: 0; }
 .article { max-width: 720px; margin: 0 auto; padding-block: 36px 72px; }
@@ -364,15 +361,8 @@ const item = (a) => `<a class="item" href="${url(a)}">${thumb(a)}<div>${tags(a)}
 const list = (items) => (items.length ? `<div class="list">\n${items.map(item).join('\n')}\n</div>` : '<p class="empty">Nessun articolo, per ora.</p>');
 
 function sidebar(articles) {
-  const top = [...articles.filter((a) => a.featured), ...articles.filter((a) => !a.featured)].slice(0, 5);
   const start = articles.filter((a) => a.category === 'guide-e-tutorial').slice(0, 3);
   return `<aside>
-  ${top.length ? `<section class="box">
-    <h2>I più letti</h2>
-    <ol class="top">
-      ${top.map((a) => `<li><a href="${url(a)}">${esc(a.title)}</a></li>`).join('\n      ')}
-    </ol>
-  </section>` : ''}
   <section class="box news" id="newsletter">
     <h2>La newsletter del sabato</h2>
     <p>Le notizie AI della settimana spiegate semplici, in 5 minuti.</p>
@@ -395,12 +385,12 @@ const isBusiness = (a) => a.forBusiness === true || a.category === 'per-la-tua-a
 
 function homePage(articles) {
   const lead = articles.find((a) => a.featured) ?? articles[0];
-  const latest = articles.find((a) => a !== lead) ?? lead;
-  const rest = articles.filter((a) => a !== lead).slice(0, 12);
-  const biz = articles.filter(isBusiness).slice(0, 3);
+  const latest = articles.find((a) => a !== lead);
+  const biz = articles.filter((a) => isBusiness(a) && a !== lead && a !== latest).slice(0, 3);
+  const rest = articles.filter((a) => a !== lead && a !== latest && !biz.includes(a)).slice(0, 12);
   const main = !lead
     ? `<div class="home"><div><p class="empty">Nessun articolo, per ora.</p></div>${sidebar(articles)}</div>`
-    : `<a class="ticker" href="${url(latest)}"><b>Ultim'ora · ${dayMonth(latest.date)}</b><span>${esc(latest.title)}</span></a>
+    : `${latest ? `<a class="ticker" href="${url(latest)}"><b>Ultim'ora · ${dayMonth(latest.date)}</b><span>${esc(latest.title)}</span></a>` : ''}
 <div class="home">
   <div>
     <h1 class="sr-only">Blog di ${AUTHOR}</h1>
@@ -413,8 +403,8 @@ function homePage(articles) {
       </div>
       ${thumb(lead)}
     </a>
-    <h2 class="section-title">Ultime notizie</h2>
-    ${list(rest)}
+    ${rest.length ? `<h2 class="section-title">Ultime notizie</h2>
+    ${list(rest)}` : ''}
     ${biz.length ? `<section class="biz" id="azienda">
       <div class="biz-head">
         <h2><a href="${catUrl('per-la-tua-azienda')}">Per la tua azienda</a></h2>
