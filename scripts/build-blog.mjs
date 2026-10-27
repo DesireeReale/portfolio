@@ -32,6 +32,8 @@
  *       > [!PUNTO]
  *       > La frase da ricordare della sezione.
  *     Tipi: PUNTO (il punto chiave), REGOLE (una lista di regole), ATTENZIONE (un rischio).
+ *     Un testo dopo l'etichetta ne prende il posto come titolo: `> [!PUNTO] Cosa insegnano questi casi`.
+ *   - `==frase chiave==` diventa un evidenziatore (<mark>), per 1-2 frasi per paragrafo al massimo.
  *
  * Categorie: intelligenza-artificiale, guide-e-tutorial, app-e-strumenti, ai-in-locale,
  * big-tech, sicurezza, funziona-davvero, per-la-tua-azienda.
@@ -49,14 +51,31 @@ const MIN_IMAGE_WIDTH = 600;
 const CALLOUTS = { PUNTO: 'Il punto', REGOLE: 'Le regole', ATTENZIONE: 'Attenzione' };
 const TOC_MIN = 3;
 
+marked.use({
+  extensions: [{
+    name: 'mark',
+    level: 'inline',
+    start: (src) => src.indexOf('=='),
+    tokenizer(src) {
+      const m = /^==(?=\S)([^=\n]*?\S)==/.exec(src);
+      if (m) return { type: 'mark', raw: m[0], tokens: this.lexer.inlineTokens(m[1]) };
+    },
+    renderer(token) {
+      return `<mark>${this.parser.parseInline(token.tokens)}</mark>`;
+    },
+  }],
+});
+
 const plainText = (h) => h.replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 const anchor = (t) => t.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 function enhance(html) {
   const toc = [];
   html = html
-    .replace(/<blockquote>\s*<p>\[!(PUNTO|REGOLE|ATTENZIONE)\]\s*([\s\S]*?)<\/blockquote>/g, (m, kind, rest) =>
-      `<aside class="callout"><p class="callout-label">${CALLOUTS[kind]}</p>\n${rest.startsWith('</p>') ? rest.slice(4) : `<p>${rest}`}</aside>`)
+    .replace(/<blockquote>\s*<p>\[!(PUNTO|REGOLE|ATTENZIONE)\]([^\n<]*)([\s\S]*?)<\/blockquote>/g, (m, kind, title, rest) => {
+      rest = rest.trimStart();
+      return `<aside class="callout"><p class="callout-label">${title.trim() || CALLOUTS[kind]}</p>\n${rest.startsWith('</p>') ? rest.slice(4) : `<p>${rest}`}</aside>`;
+    })
     .replace(/<p><strong>([^<]{1,40})<\/strong><\/p>/g, '<p class="label">$1</p>')
     .replace(/<h2>([\s\S]*?)<\/h2>/g, (m, inner) => {
       const base = anchor(plainText(inner)) || 'sezione';
@@ -208,7 +227,7 @@ const CSS = `
 :root {
   --bg: #fafaf9; --surface: #ffffff; --surface-2: #f5f5f4; --line: rgba(0,0,0,0.08);
   --fg: #1c1917; --muted: #78716c; --accent: #d97706; --accent-soft: rgba(245,158,11,0.12); --on-accent: #1c1917;
-  --accent-text: #b45309; --callout-bg: #fef3c7; --callout-border: #d97706; --callout-label: #92400e;
+  --accent-text: #b45309; --callout-bg: #fef3c7; --callout-border: #d97706; --callout-label: #92400e; --mark: rgba(245,158,11,0.34);
   --yes: #15803d; --no: #b91c1c; --mid: #b45309;
   --display: "Plus Jakarta Sans", system-ui, sans-serif;
   --text: "Inter", system-ui, sans-serif;
@@ -217,12 +236,12 @@ const CSS = `
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #020617; --surface: #0f172a; --surface-2: #111c33; --line: rgba(255,255,255,0.08);
   --fg: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --accent-soft: rgba(56,189,248,0.12); --on-accent: #020617;
-  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc;
+  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc; --mark: rgba(56,189,248,0.30);
   --yes: #4ade80; --no: #f87171; --mid: #fbbf24; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #020617; --surface: #0f172a; --surface-2: #111c33; --line: rgba(255,255,255,0.08);
   --fg: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --accent-soft: rgba(56,189,248,0.12); --on-accent: #020617;
-  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc;
+  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc; --mark: rgba(56,189,248,0.30);
   --yes: #4ade80; --no: #f87171; --mid: #fbbf24; color-scheme: dark }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--text); }
@@ -256,7 +275,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .cats { display: flex; gap: 22px; font-size: 14px; color: var(--muted); overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
 .cats a { white-space: nowrap; }
 .cats a:hover, .cats a.on { color: var(--fg); }
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 14px; border: 0; cursor: pointer; font-family: inherit; }
 .ticker { display: flex; gap: 14px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--line); font-size: 14px; overflow: hidden; }
 .ticker b { font: 500 12px var(--mono); color: var(--accent-text); white-space: nowrap; }
 .ticker span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -287,24 +305,22 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 aside { display: flex; flex-direction: column; gap: 28px; }
 .box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
 .box h2 { font-size: 17px; margin-bottom: 14px; }
-.news p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
-.news form { display: grid; gap: 10px; }
-.news input { min-height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 12px; font: inherit; }
 .start a:hover { color: var(--accent-text); }
 .start a { display: block; padding-block: 9px; border-bottom: 1px solid var(--line); font-size: 15px; }
 .start a:last-child { border: 0; }
 .article { max-width: 40rem; margin: 0 auto; padding-block: 36px 72px; }
 .back { font-size: 14px; color: var(--muted); }
 .article h1 { font-size: clamp(30px, 4.4vw, 44px); margin: 14px 0 16px; }
-.article .dek { font-size: 20px; line-height: 1.55; color: var(--muted); margin: 0 0 18px; }
+.article .dek { font-size: 19px; line-height: 1.55; color: var(--muted); margin: 0 0 18px; }
 .article .cover { margin: 26px 0; }
 .article h2 { font-size: 28px; margin: 56px 0 14px; scroll-margin-top: 130px; }
 .article h3 { font-size: 21px; margin: 36px 0 10px; }
-.article p, .article li { font-size: 18px; line-height: 1.7; text-align: left; }
+.article p, .article li { font-size: 17px; line-height: 1.7; text-align: left; }
 .body p, .body ul, .body ol { margin: 0 0 1.1em; }
 .body li + li { margin-top: 0.5em; }
 .body em, .body i { font-style: normal; font-weight: 600; }
 .body strong { font-weight: 700; }
+.body mark { color: inherit; background: linear-gradient(transparent 45%, var(--mark) 45%, var(--mark) 92%, transparent 92%); padding: 0 0.12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .body a, .toc a, .sources a, .figure figcaption a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .body a { color: var(--accent-text); }
 .body code { font: 15px var(--mono); background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
@@ -331,6 +347,7 @@ aside { display: flex; flex-direction: column; gap: 28px; }
 footer { border-top: 1px solid var(--line); padding-block: 28px; font-size: 14px; color: var(--muted); }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
 footer a:hover { color: var(--fg); }
+.home:not(:has(> aside)) { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 900px) {
   .home { grid-template-columns: 1fr; gap: 36px; }
   .lead { grid-template-columns: 1fr; }
@@ -338,14 +355,13 @@ footer a:hover { color: var(--fg); }
 @media (max-width: 520px) {
   .item { grid-template-columns: 1fr; gap: 10px; }
   .item .thumb { display: none; }
-  .bar .btn { padding: 0 14px; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } a h3, a h2 { transition: color .2s; } }
 `.trim();
 
 const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='14' fill='%2338bdf8'/%3E%3Cpath d='M18 20 l10 8 l-10 8 M32 38 h10' stroke='%230b1220' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 
-function page({ title, description, path, type = 'website', jsonLd, active, noindex, main, image = OG_IMAGE }) {
+function page({ title, description, path, type = 'website', jsonLd, active, main, image = OG_IMAGE }) {
   const canonical = SITE + path;
   const nav = Object.entries(CATEGORIES)
     .map(([slug, c]) => {
@@ -361,7 +377,7 @@ function page({ title, description, path, type = 'website', jsonLd, active, noin
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="author" content="${AUTHOR}">
-${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${canonical}">`}
+<link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#020617">
 <link rel="icon" href="${FAVICON}">
 <link rel="alternate" type="application/rss+xml" title="Blog di ${AUTHOR}" href="${SITE}/blog/rss.xml">
@@ -388,7 +404,6 @@ ${CSS}
   <div class="wrap">
     <div class="bar">
       <a class="logo" href="/"><i>&gt;_</i> ${AUTHOR}</a>
-      <a class="btn" href="/blog/#newsletter">Newsletter</a>
     </div>
     <nav class="cats" aria-label="Categorie">
         <a${active === 'home' ? ' class="on" aria-current="page"' : ''} href="/blog/">Tutti</a>
@@ -399,7 +414,7 @@ ${CSS}
 <main class="wrap">
 ${main}
 </main>
-<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${AUTHOR}</span><span><a href="/blog/">Notizie</a> · <a href="${catUrl('guide-e-tutorial')}">Guide</a> · <a href="${catUrl('app-e-strumenti')}">App</a> · <a href="/blog/#newsletter">Newsletter</a> · <a href="/blog/rss.xml">RSS</a></span><span><a href="/">Portfolio</a> · <a href="${GITHUB}" rel="me">GitHub</a></span></div></footer>
+<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${AUTHOR}</span><span><a href="/blog/">Notizie</a> · <a href="${catUrl('guide-e-tutorial')}">Guide</a> · <a href="${catUrl('app-e-strumenti')}">App</a> · <a href="/blog/rss.xml">RSS</a></span><span><a href="/">Portfolio</a> · <a href="${GITHUB}" rel="me">GitHub</a></span></div></footer>
 </body>
 </html>
 `;
@@ -414,23 +429,12 @@ const list = (items) => (items.length ? `<div class="list">\n${items.map(item).j
 
 function sidebar(articles) {
   const start = articles.filter((a) => a.category === 'guide-e-tutorial').slice(0, 3);
-  return `<aside>
-  <section class="box news" id="newsletter">
-    <h2>La newsletter del sabato</h2>
-    <p>Le notizie AI della settimana spiegate semplici, in 5 minuti.</p>
-    <form name="newsletter" method="POST" action="/blog/grazie/" data-netlify="true" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="newsletter">
-      <p hidden><label>Non compilare questo campo: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
-      <label class="meta" for="email">La tua email</label>
-      <input id="email" name="email" type="email" required placeholder="nome@email.it" autocomplete="email">
-      <button class="btn" type="submit">Iscriviti</button>
-    </form>
-  </section>
-  ${start.length ? `<section class="box start">
+  return start.length ? `<aside>
+  <section class="box start">
     <h2>Inizia da qui</h2>
     ${start.map((a) => `<a href="${url(a)}">${esc(a.title)}</a>`).join('\n    ')}
-  </section>` : ''}
-</aside>`;
+  </section>
+</aside>` : '';
 }
 
 const isBusiness = (a) => a.forBusiness === true || a.category === 'per-la-tua-azienda';
@@ -547,14 +551,6 @@ ${a.html}
   });
 }
 
-const thanksPage = () => page({
-  title: `Iscrizione ricevuta – ${AUTHOR}`,
-  description: 'Grazie per esserti iscritto alla newsletter del sabato.',
-  path: '/blog/grazie/',
-  noindex: true,
-  main: `<article class="article"><h1>Grazie!</h1><p class="dek">La tua iscrizione alla newsletter del sabato è arrivata.</p><a class="btn" href="/blog/">Torna al blog</a></article>`,
-});
-
 function rss(articles) {
   const items = articles.slice(0, 30).map((a) => `  <item>
     <title>${esc(a.title)}</title>
@@ -603,7 +599,6 @@ const articles = loadArticles();
 write('blog/index.html', homePage(articles));
 for (const slug of Object.keys(CATEGORIES)) write(`blog/categoria/${slug}/index.html`, categoryPage(slug, articles));
 for (const a of articles) write(`blog/${a.slug}/index.html`, articlePage(a));
-write('blog/grazie/index.html', thanksPage());
 write('blog/rss.xml', rss(articles));
 write('sitemap.xml', sitemap(articles));
 console.log(`Blog: ${articles.length} articoli generati in dist/blog/`);

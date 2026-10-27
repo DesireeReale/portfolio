@@ -86,10 +86,12 @@ Titoletti:
 
 Leggibilità:
 - Ogni paragrafo ha al massimo 3 frasi; vai a capo spesso.
-- In ogni paragrafo metti in grassetto (**così**) al massimo 1 o 2 frasi chiave, mai parole sparse e mai il corsivo.
-- Chiudi ogni sezione "## " con il punto da ricordare, su due righe esatte come queste:
+- In ogni paragrafo evidenzia (==così==) al massimo 1 o 2 frasi chiave, mai parole sparse. Niente corsivo e niente grassetto nel testo.
+- Nessuna etichetta o formula ripetuta: non aprire o chiudere paragrafi e sezioni con la stessa parola ("La lezione:", "In pratica:").
+- Solo se una sezione "## " è lunga, chiudila con la cosa da ricordare, su due righe come queste:
   > [!PUNTO]
-  > Una sola frase semplice con la cosa da ricordare della sezione, senza ripetere il titoletto.
+  > Una sola frase semplice, senza ripetere il titoletto.
+  Nelle sezioni brevi non serve, e ogni frase di chiusura deve essere costruita in modo diverso dalle altre.
 
 Aziende:
 - "perAzienda" contiene solo usi concreti per una piccola azienda o un professionista: un lavoro preciso che può fare con questo strumento,

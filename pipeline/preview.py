@@ -84,7 +84,6 @@ def build(out, skip):
     head = re.sub(r'<title>.*?</title>', '<title>Bozze del blog</title>', head, flags=re.S)
     head = head.replace('</style>', BANNER_CSS + marks + '</style>', 1)
     body = re.search(r'<body[^>]*>(.*)</body>', home, re.S).group(1)
-    body = re.sub(r'<form ([^>]*)action="[^"]*"', r'<form \1onsubmit="return false"', body)
     (out / 'index.html').write_text(head.strip() + '\n' + body.strip() + '\n', encoding='utf-8')
     shutil.rmtree(tmp)
     return files

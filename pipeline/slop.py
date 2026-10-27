@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 
 BANNED = [
     'in un mondo in continua evoluzione', 'in un mondo sempre più', 'è fondamentale', 'è essenziale', 'è cruciale',
@@ -20,6 +21,7 @@ TRIAD = re.compile(r"\b([a-zà-ù]+), ([a-zà-ù]+),? e ([a-zà-ù]+)\b")
 EMOJI = re.compile('[\U0001F000-\U0001FAFF☀-➿⭐⬆↔-↪]')
 MAX_WORDS_SENTENCE = 30
 MIN_WORDS, MAX_WORDS = 250, 600
+REPEATED_LABEL = 3
 CODE_BLOCK = re.compile(r'```[^\n]*\n(.*?)```', re.S)
 INLINE_CODE = re.compile(r'`[^`\n]+`')
 ALERT = re.compile(r'^[ \t]*>[ \t]*\[!(?:PUNTO|REGOLE|ATTENZIONE)\][ \t]*$', re.M)
@@ -34,7 +36,7 @@ HOWTO_HEADING =re.compile(r'install|scaric|come (si )?(usa|prova|avvi)|come usar
 
 def plain(text):
     text = re.sub(r'\]\([^)]*\)', ']', text)
-    return text.replace('’', "'").replace('‘', "'").replace('\xa0', ' ').replace(' ', ' ')
+    return text.replace('==', '').replace('’', "'").replace('‘', "'").replace('\xa0', ' ').replace(' ', ' ')
 
 
 def sentences(text):
@@ -103,6 +105,8 @@ def prose(text):
 
 def structure_problems(body):
     problems = []
+    openers = re.findall(r'^(?:[*=]{2})?([A-ZÀ-Ù][^\n:*=]{0,30})(?:[*=]{2})?:', body, re.M)
+    problems += [f'etichetta ripetuta {n} volte: "{o}:"' for o, n in Counter(openers).items() if n >= REPEATED_LABEL]
     for section in re.split(r'^(?=## )', body, flags=re.M):
         heading, _, content = section.partition('\n')
         if not heading.startswith('## '):
@@ -112,8 +116,6 @@ def structure_problems(body):
             problems.append(f'titoletto generico: "{heading}"')
         if HOWTO_HEADING.search(heading) and not (re.search(r'^\s*\d+\.\s', content, re.M) or '```' in content):
             problems.append(f'titoletto "{heading}" senza passi numerati o comandi')
-        if '[!PUNTO]' not in content:
-            problems.append(f'sezione "{heading}" senza il riquadro [!PUNTO] finale')
     return problems
 
 
