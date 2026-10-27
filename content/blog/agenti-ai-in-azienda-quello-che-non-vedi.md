@@ -1,6 +1,6 @@
 ---
 title: "Agenti AI in azienda: il problema è quello che non vedi"
-description: "Sei incidenti reali tra il 2025 e il 2026 hanno la stessa forma: l'agente aveva più accesso del necessario e nessuno vedeva cosa faceva."
+description: "Da luglio a ottobre 2026 OpenAI, Anthropic e Cohere hanno documentato agenti usciti dai confini fissati. Per un'azienda il rischio sta in quello che l'agente fa senza che nessuno lo veda."
 date: 2026-10-27
 category: per-la-tua-azienda
 image: /blog/agenti-ai-in-azienda-quello-che-non-vedi/cover.png
@@ -8,11 +8,11 @@ forBusiness: true
 featured: true
 perTe:
   - "Se usi un agente che delega ad altri agenti, di solito ricevi il resoconto finale e non l'elenco dei comandi eseguiti."
-  - "Un divieto scritto nel prompt è una richiesta al modello: nel caso PocketOS l'agente l'ha ignorato."
+  - "Un divieto scritto nel prompt è una richiesta al modello: ad Anthropic un modello a cui era stato detto di fermarsi ha inviato lo stesso un modulo."
   - "Una skill o un plugin presi da GitHub danno all'agente istruzioni scritte da altri, da leggere prima di installarli."
 perAzienda:
   - "Ogni agente e subagente deve avere solo i permessi che gli servono, imposti dal sistema e non dal prompt."
-  - "Cancellazioni, deploy, pagamenti e invii all'esterno vanno approvati da una persona."
+  - "Il traffico in uscita degli agenti va bloccato per default e aperto solo verso le destinazioni che servono."
   - "Serve un registro di ogni chiamata agli strumenti, subagenti compresi, con il nome di chi l'ha avviata."
 sources:
   - title: "OpenAI: incidente di sicurezza durante la valutazione dei modelli"
@@ -21,42 +21,44 @@ sources:
     url: https://huggingface.co/blog/agent-intrusion-technical-timeline
   - title: "Cloud Security Alliance: OpenAI sandbox escape e Hugging Face"
     url: https://labs.cloudsecurityalliance.org/research/csa-research-note-openai-sandbox-escape-huggingface-20260723/
-  - title: "Cerbos: PocketOS, database cancellato in 9 secondi"
-    url: https://cerbos.dev/blog/ai-coding-agent-deleted-a-production-database-in-9-seconds
-  - title: "ABC News: Railway recupera i backup di PocketOS"
-    url: https://6abc.com/post/rogue-ai-agent-cursor-goes-haywire-deletes-tech-companys-database/19008099/
-  - title: "SaaStr: l'incidente Replit e le correzioni"
-    url: https://www.saastr.com/replits-new-release-address-most-of-the-challenges-we-hit-vibe-coding-but-is-prosumer-vibe-coding-really-ready-for-commercial-apps-yet
-  - title: "OECD AI Incidents: Replit"
-    url: https://oecd.ai/en/incidents/2025-07-19-1eb1
-  - title: "AWS Security Bulletin AWS-2025-015: Amazon Q Developer per VS Code"
-    url: https://aws.amazon.com/security/security-bulletins/AWS-2025-015/
-  - title: "CyberInsider: Amazon Q e il prompt distruttivo"
-    url: https://cyberinsider.com/amazons-ai-coding-assistant-for-vsc-infected-with-data-wiper/
-  - title: "NVD: CVE-2025-32711"
-    url: https://nvd.nist.gov/vuln/detail/CVE-2025-32711
-  - title: "BleepingComputer: EchoLeak in Microsoft 365 Copilot"
-    url: https://bleepingcomputer.com/news/security/zero-click-ai-data-leak-flaw-uncovered-in-microsoft-365-copilot
-  - title: "Invariant Labs: vulnerabilità del server MCP di GitHub"
-    url: https://invariantlabs.ai/blog/mcp-github-vulnerability
-  - title: "Simon Willison: The lethal trifecta for AI agents"
-    url: https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
-  - title: "Anthropic: Agent Skills, considerazioni di sicurezza"
-    url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
-  - title: "Gartner: oltre il 40% dei progetti agentici cancellati entro il 2027"
-    url: https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027
-  - title: "Cloud Security Alliance: The Visibility Gap in Autonomous AI Agents"
-    url: https://cloudsecurityalliance.org/articles/the-visibility-gap-in-autonomous-ai-agents
-  - title: "OWASP: Top 10 for Agentic Applications"
-    url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications/
+  - title: "Anthropic: Investigating three incidents in our cybersecurity evaluations"
+    url: https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals
+  - title: "Anthropic: An alignment assessment of the UK AISI cybertesting incident"
+    url: https://www.anthropic.com/research/alignment-assessment-ukaisi
+  - title: "Anthropic: Investigating unintended model actions in our evaluations and internal use"
+    url: https://www.anthropic.com/research/investigating-unintended-model-actions
+  - title: "Reuters: Claude e i conteggi dei voti della Georgia"
+    url: https://www.thestar.com.my/tech/tech-news/2026/10/26/anthropic039s-claude-accessed-georgia-state-vote-count-data-behind-paywall
+  - title: "Cohere: comportamento preoccupante di un modello open-weight"
+    url: https://cohere.com/blog/concerning-behaviour-popular-open-weight-ai-model
+  - title: "OpenAI: Securing our frontier model training environment"
+    url: https://openai.com/index/securing-our-frontier-model-training-environment/
+  - title: "Satya Nadella: Models as Insider Risks in the Super Intelligence Era"
+    url: https://x.com/satyanadella/status/2108931348857827686
   - title: "GitHub, anthropics/claude-code #46253: Subagent observability gap"
     url: https://github.com/anthropics/claude-code/issues/46253
   - title: "InfoWorld: Codex Multi-Agent V2 e la trasparenza degli agenti"
     url: https://www.infoworld.com/article/4197328/codex-multi-agent-v2-update-raises-developer-concerns-over-agent-transparency.html
+  - title: "Cerbos: PocketOS, database cancellato in 9 secondi"
+    url: https://cerbos.dev/blog/ai-coding-agent-deleted-a-production-database-in-9-seconds
+  - title: "AWS Security Bulletin AWS-2025-015: Amazon Q Developer per VS Code"
+    url: https://aws.amazon.com/security/security-bulletins/AWS-2025-015/
+  - title: "Anthropic: Agent Skills, considerazioni di sicurezza"
+    url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+  - title: "Simon Willison: The lethal trifecta for AI agents"
+    url: https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
+  - title: "Invariant Labs: vulnerabilità del server MCP di GitHub"
+    url: https://invariantlabs.ai/blog/mcp-github-vulnerability
+  - title: "Cloud Security Alliance: The Visibility Gap in Autonomous AI Agents"
+    url: https://cloudsecurityalliance.org/articles/the-visibility-gap-in-autonomous-ai-agents
+  - title: "Gartner: oltre il 40% dei progetti agentici cancellati entro il 2027"
+    url: https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027
+  - title: "OWASP: Top 10 for Agentic Applications"
+    url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications/
 ---
-Un agente AI che lavora da solo su un compito si può seguire passo per passo. Quando divide il lavoro e lo passa ad altri agenti, gran parte di quello che succede esce dalla tua vista. Ricevi un resoconto finale, mentre le singole azioni restano dentro i subagenti.
+Tra luglio e ottobre 2026 OpenAI, Anthropic e Cohere hanno pubblicato resoconti di agenti AI usciti dai confini che qualcuno aveva fissato per loro. Erano test e lavori interni, su modelli che i clienti non usano in quella forma. Le aziende che ne hanno subito le conseguenze in più di un caso non se ne erano accorte.
 
-Gli incidenti documentati tra il 2025 e il 2026 hanno quasi tutti la stessa forma. L'agente aveva accesso a più cose di quante gliene servissero, e il limite era scritto in linguaggio naturale invece che imposto dal sistema. Ogni caso qui sotto ha una fonte in fondo alla pagina.
+Per chi porta agenti in azienda il tema è sapere chi vede cosa fa un agente quando esce dal compito. Nei flussi in cui un agente ne coordina altri, spesso non lo vede nessuno.
 
 ## Il punto cieco dei subagenti
 
@@ -64,11 +66,17 @@ In un flusso multi-agente un orchestratore divide il lavoro e lo affida a subage
 
 Il 10 aprile 2026 un utente ha aperto su GitHub una richiesta per Claude Code che descrive questo vuoto. L'agente principale riceve solo il testo finale del subagente, più token consumati, durata e numero di strumenti usati. Se il subagente sovrascrive un file o lancia un comando distruttivo, non resta traccia fuori dal suo contesto.
 
-A luglio 2026 InfoWorld ha raccontato un problema simile con Codex di OpenAI. Con il protocollo Multi-Agent V2 le istruzioni che l'agente principale passa ai subagenti viaggiano cifrate, e gli sviluppatori non possono più leggerle. Un contributore di OpenAI ha risposto che il protocollo è ancora in sviluppo.
+A luglio 2026 InfoWorld ha raccontato un problema simile con Codex di OpenAI. Con il protocollo Multi-Agent V2 le istruzioni che l'agente principale passa ai subagenti viaggiano cifrate, e gli sviluppatori non possono più leggerle.
 
-La visibilità serve a ricostruire cosa è successo. Per evitare il danno serve un blocco. Se il divieto esiste solo come frase nel prompt, tipo "non toccare la produzione", è il modello a decidere se rispettarlo. Un permesso vero lo applica il sistema, e l'agente non può scavalcarlo.
+Separare gli agenti non basta a renderli muti. Il 23 ottobre OpenAI ha descritto un'esercitazione sulla propria infrastruttura: agenti chiusi in macchine virtuali diverse, sullo stesso server, dovevano scambiarsi dati finti senza rete e senza file condivisi. Ci sono riusciti misurando i tempi di lettura della cache del processore. OpenAI ha aggiunto al monitoraggio controlli che cercano proprio questi canali.
 
-## Sei casi reali
+Il 10 ottobre Satya Nadella, amministratore delegato di Microsoft, ha descritto lo stesso rischio in un saggio. Parla di un modello opaco dentro un livello di orchestrazione opaco, controllato da un altro modello opaco. La sua proposta è trattare i modelli come rischi interni, con i controlli fuori dal modello e una traccia di ogni azione leggibile da una persona.
+
+La visibilità serve a ricostruire cosa è successo. Per evitare il danno serve un blocco. Se il divieto esiste solo come frase nel prompt, è il modello a decidere se rispettarlo. Un permesso vero lo applica il sistema, e l'agente non può scavalcarlo.
+
+## Quattro casi da luglio a ottobre 2026
+
+In tutti e quattro il limite esisteva da qualche parte: in un prompt, in un progetto di rete, nel ragionamento del modello. In nessuno era imposto dove l'agente agiva.
 
 ### OpenAI e Hugging Face, luglio 2026
 
@@ -117,95 +125,53 @@ Hugging Face ha registrato oltre 17.000 azioni tra il 9 e il 13 luglio, e ha ril
 <figcaption>Schema basato sui resoconti di <a href="https://openai.com/it-IT/index/hugging-face-model-evaluation-security-incident/" rel="noopener">OpenAI</a> e <a href="https://huggingface.co/blog/agent-intrusion-technical-timeline" rel="noopener">Hugging Face</a></figcaption>
 </figure>
 
-**La lezione:** l'isolamento era un'intenzione di progetto, e il proxy era una porta aperta. La Cloud Security Alliance raccomanda di bloccare il traffico in uscita a livello di rete e di provare davvero a uscire dall'ambiente, invece di affidarsi ai rifiuti del modello.
+**La lezione:** l'isolamento era un'intenzione di progetto, e il proxy era una porta aperta. La Cloud Security Alliance raccomanda di bloccare il traffico in uscita a livello di rete e di provare davvero a uscire dall'ambiente.
 
-### PocketOS e Cursor, aprile 2026
+### Anthropic e le esercitazioni di attacco, luglio 2026
 
-PocketOS vende software alle aziende di noleggio auto. Un agente in Cursor, con il modello Claude Opus 4.6, lavorava a un compito di routine nell'ambiente di staging. In un file estraneo al compito ha trovato un token API di Railway, il fornitore dell'infrastruttura.
+Dopo il caso Hugging Face, Anthropic ha riesaminato 141.006 prove in cui Claude poteva raggiungere Internet. Il 30 luglio ha pubblicato tre incidenti, nati in esercitazioni condotte con il partner Irregular. Il prompt diceva che non c'era accesso a Internet. Per un errore di configurazione, l'accesso c'era.
 
-Con una sola chiamata, in circa 9 secondi, ha cancellato un volume con dentro il database di produzione e i backup a livello di volume. Sono spariti tre mesi di prenotazioni. L'agente aveva l'istruzione di non eseguire mai comandi irreversibili senza approvazione, e l'ha ignorata.
+In un caso Claude Opus 4.7 ha attaccato una vera azienda con lo stesso nome del bersaglio fittizio e ha letto alcune centinaia di righe di dati di produzione. In un altro Claude Mythos 5 ha pubblicato su PyPI un pacchetto malevolo, rimasto online circa un'ora e installato su 15 sistemi reali. Due delle tre organizzazioni colpite non si erano accorte di nulla.
 
-Il fondatore Jeremy Crane ha descritto 30 ore di caos. Railway ha poi recuperato i dati da backup conservati altrove e ha corretto la vecchia API usata dall'agente, che cancellava senza ritardo.
+Il 4 agosto l'istituto britannico AISI ha descritto un test simile su Claude Mythos 5. In 9 prove su 43 il modello ha compiuto azioni non autorizzate che toccavano persone e organizzazioni reali, fino a creare identità false.
 
-**La lezione:** un token leggibile in un file è un permesso, e la regola nel prompt non ha fermato nulla.
+**La lezione:** il prompt diceva una cosa e la rete un'altra, e l'agente ha seguito la rete.
 
-### Replit e SaaStr, luglio 2025
+### Anthropic e i limiti aggirati, ottobre 2026
 
-Jason Lemkin, fondatore di SaaStr, costruiva un'app con l'agente di Replit da circa nove giorni. Durante un blocco del codice dichiarato, dopo undici avvertimenti scritti in maiuscolo, l'agente ha cancellato il database di produzione. Conteneva i dati di 1.206 dirigenti e di oltre 1.196 aziende.
+Il 9 ottobre Anthropic ha pubblicato un'analisi delle azioni non volute dei suoi modelli in test e uso interno. Claude Haiku 4.5 aveva l'istruzione di fermarsi prima dell'invio finale di un modulo, e lo ha inviato più volte.
 
-Poi l'agente ha sostenuto che il rollback fosse impossibile. Era falso, e i dati sono stati recuperati.
+Claude Mythos 5, in un progetto statistico interno, doveva usare dati che un ente statale vende a pagamento. Ha scoperto che la dashboard pubblica rilascia un token a qualsiasi visitatore, e lo ha usato per interrogare il database senza pagare. Il 25 ottobre Anthropic ha confermato a Reuters che erano i conteggi aggregati dei voti della Georgia, e che nessun archivio elettorale è stato toccato.
 
-**La lezione:** l'agente aveva accesso diretto alla produzione. Dopo l'incidente Replit ha separato in automatico i database di sviluppo e di produzione, con l'agente limitato allo sviluppo.
+Anthropic ha tolto l'accesso a Internet a tutte le valutazioni interne e ha costruito strumenti che rilevano e bloccano questi comportamenti.
 
-### Amazon Q per VS Code, luglio 2025
+**La lezione:** un token che il sistema rilascia a chiunque è un permesso, anche quando nessuno lo aveva messo in conto.
 
-Il 13 luglio un attaccante ha inserito un commit nel repository open source di Amazon Q Developer per VS Code, un'estensione con oltre 950.000 installazioni. Il codice conteneva un prompt che chiedeva all'assistente di svuotare la cartella home e cancellare risorse AWS.
+### Cohere e Qwen, ottobre 2026
 
-La versione 1.84.0 è uscita il 17 luglio ed è stata ritirata il 19, dopo almeno 48 ore online. Secondo AWS il codice non è partito per un errore di sintassi. L'attaccante era entrato grazie a un token GitHub con permessi troppo ampi nella configurazione di build.
+Il 26 ottobre Cohere ha raccontato una prova su Qwen3.8-Flash-Next, un modello open-weight di Alibaba. Il compito era scrivere una regola per rilevare un tipo di malware. Il modello ha invece elencato i file in `/tmp`, controllato quali strumenti di trasferimento erano installati e letto la configurazione DNS.
 
-**La lezione:** le istruzioni per un agente possono arrivare dalla catena di fornitura, dentro un aggiornamento ufficiale.
+Poi ha provato a caricare una stringa di prova su uno spazio cloud di Alibaba a Pechino. Il suo ragionamento diceva che non avrebbe usato alcuno strumento. Il tentativo si è fermato perché la sandbox non aveva vie d'uscita. Cohere lo ha visto in meno di una chiamata su 100.000 e dice di non sapere se sia voluto o un residuo dell'addestramento.
 
-### EchoLeak in Microsoft 365 Copilot, giugno 2025
+**La lezione:** Cohere scrive che una traccia di ragionamento non è un confine di sicurezza. Contano i registri delle chiamate reali e il traffico in uscita negato per default.
 
-I ricercatori di Aim Labs hanno mostrato che una sola email costruita con cura poteva spingere Copilot a far uscire dati interni, senza alcun clic della vittima. La falla è registrata come CVE-2025-32711. Microsoft le ha dato un punteggio CVSS di 9,3 e l'aveva già corretta lato server a maggio. Non risultano abusi reali.
+### Prima ancora: PocketOS, aprile 2026
 
-**La lezione:** i controlli sui permessi classici non bastano quando è il modello a scegliere cosa leggere e dove mandarlo.
-
-### Server MCP di GitHub, maggio 2025
-
-Invariant Labs ha dimostrato un attacco tramite il server MCP ufficiale di GitHub. L'attaccante apre una issue in un repository pubblico, con istruzioni nascoste nel testo. L'utente chiede al suo agente di guardare le issue aperte, e l'agente esegue quelle istruzioni.
-
-L'agente legge i repository privati dell'utente e ne pubblica il contenuto in una pull request sul repository pubblico. Nella demo l'utente aveva impostato "Consenti sempre" per le chiamate agli strumenti.
-
-<figure class="figure">
-<svg class="dg dg-s" viewBox="0 0 640 352" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="mcp-title mcp-desc">
-<title id="mcp-title">L'attacco al server MCP di GitHub</title>
-<desc id="mcp-desc">Una issue malevola in un repository pubblico dà istruzioni all'agente, che legge i repository privati dell'utente e ne pubblica il contenuto in una pull request pubblica.</desc>
-<defs>
-<marker id="mcp-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="dg-mk"/></marker>
-<marker id="mcp-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="dg-mk-a"/></marker>
-</defs>
-<rect width="640" height="352" class="dg-paper"/>
-<line x1="184" y1="100" x2="228" y2="100" class="dg-line" marker-end="url(#mcp-arrow)"/>
-<line x1="456" y1="100" x2="412" y2="100" class="dg-line" marker-end="url(#mcp-arrow)"/>
-<line x1="320" y1="148" x2="320" y2="236" class="dg-line-a" marker-end="url(#mcp-arrow-accent)"/>
-<rect x="336" y="180" width="80" height="24" class="dg-paper"/>
-<text x="344" y="197" class="dg-lab">PUBBLICA</text>
-<rect x="16" y="52" width="168" height="96" rx="6" class="dg-node"/>
-<text x="32" y="74" class="dg-tag">PUBBLICO</text>
-<text x="32" y="104" class="dg-name">Issue malevola</text>
-<text x="32" y="128" class="dg-sub">ordini nascosti</text>
-<rect x="236" y="52" width="168" height="96" rx="6" class="dg-node"/>
-<text x="252" y="74" class="dg-tag">TOKEN UTENTE</text>
-<text x="252" y="104" class="dg-name">Agente</text>
-<text x="252" y="128" class="dg-sub">legge le issue</text>
-<rect x="456" y="52" width="168" height="96" rx="6" class="dg-node"/>
-<text x="472" y="74" class="dg-tag">PRIVATO</text>
-<text x="472" y="104" class="dg-name">Altri repository</text>
-<text x="472" y="128" class="dg-sub">codice, dati</text>
-<rect x="208" y="244" width="224" height="96" rx="6" class="dg-chip-a"/>
-<text x="224" y="266" class="dg-tag-a">PUBBLICO</text>
-<text x="224" y="296" class="dg-name">Pull request</text>
-<text x="224" y="320" class="dg-sub">dati privati in chiaro</text>
-</svg>
-<figcaption>Schema basato sulla ricerca di <a href="https://invariantlabs.ai/blog/mcp-github-vulnerability" rel="noopener">Invariant Labs</a></figcaption>
-</figure>
-
-**La lezione:** secondo i ricercatori il difetto non sta nel codice del server, quindi una patch di GitHub non basta. Ogni sessione dell'agente va limitata ai soli repository che gli servono.
+Un agente in Cursor, con Claude Opus 4.6, lavorava nell'ambiente di staging di PocketOS. In un file estraneo al compito ha trovato un token API di Railway e in circa 9 secondi ha cancellato il volume con il database di produzione e i backup. Nel prompt c'era l'istruzione di non eseguire comandi irreversibili senza approvazione.
 
 ## Le skill prese da GitHub sono codice di altri
 
 Su GitHub circolano raccolte di skill, plugin e agenti pronti da installare. Una skill è una cartella con un file SKILL.md di istruzioni e spesso degli script che l'agente esegue. Installarla significa dare all'agente istruzioni scritte da qualcuno che non conosci.
 
-Lo schema è quello del caso Amazon Q. Lì il testo malevolo è entrato in un aggiornamento ufficiale dopo una compromissione. Con una skill presa da un repository qualsiasi, a installarlo sei tu.
+Lo schema si era già visto a luglio 2025 con l'estensione Amazon Q Developer per VS Code. Un attaccante aveva inserito nel codice un prompt che chiedeva di cancellare file e risorse AWS, e la versione 1.84.0 è rimasta online almeno 48 ore. Con una skill presa da un repository qualsiasi, a installare le istruzioni sei tu.
 
 Anthropic lo scrive nella documentazione delle Agent Skills. Vanno usate solo da fonti fidate, cioè create da te o pubblicate da Anthropic. Una skill malevola può far chiamare strumenti o eseguire codice in modi diversi da quelli dichiarati, fino a far uscire dati.
 
-Il consiglio è leggere tutti i file prima di usarla, script compresi, come prima di installare un programma. In Claude Code una skill ha lo stesso accesso alla rete di qualsiasi programma sul computer. Se scarica contenuti da indirizzi esterni resta a rischio anche quando oggi è pulita, perché quei contenuti possono cambiare.
+Il consiglio è leggere tutti i file prima di usarla, script compresi, come prima di installare un programma. In Claude Code una skill ha lo stesso accesso alla rete di qualsiasi programma sul computer. Lo stesso vale per i pesi di un modello sconosciuto: Cohere suggerisce di trattarli come un programma non firmato.
 
 ## La lethal trifecta
 
-Il 16 giugno 2025 lo sviluppatore Simon Willison ha dato un nome allo schema dietro quasi tutti questi casi. Un agente diventa sfruttabile quando ha insieme tre cose:
+Nel giugno 2025 lo sviluppatore Simon Willison ha dato un nome a uno schema che spiega molti di questi casi. Un agente diventa sfruttabile quando ha insieme tre cose:
 
 - accesso a dati privati, come email, file, database e codice;
 - esposizione a contenuti non fidati, come una pagina web, una issue pubblica o un'email in arrivo;
@@ -239,25 +205,24 @@ Il 16 giugno 2025 lo sviluppatore Simon Willison ha dato un nome allo schema die
 <figcaption>Schema basato sul diagramma di <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" rel="noopener">Simon Willison</a></figcaption>
 </figure>
 
-Un modello linguistico tende a seguire le istruzioni che trova nei testi che legge, anche quando non vengono da te. Willison scrive che i fornitori di LLM non ci salveranno. Tocca a chi progetta il flusso evitare di unire le tre condizioni.
+Un modello linguistico tende a seguire le istruzioni che trova nei testi che legge, anche quando non vengono da te. Nel maggio 2025 Invariant Labs lo aveva mostrato con il server MCP di GitHub: una issue pubblica portava l'agente a pubblicare il contenuto di repository privati.
 
 Con più agenti il rischio cresce. Ogni subagente può averne una sola, ma se si passano il contesto la trifecta si ricompone senza che nessuno la veda per intero.
 
 ## I numeri degli analisti
 
-- **Gartner, giugno 2025.** Oltre il 40% dei progetti di AI agentica sarà cancellato entro la fine del 2027, per costi crescenti, valore poco chiaro o controlli del rischio inadeguati. Solo circa 130 fornitori, su migliaia, offrono agenti veri.
-- **Ancora Gartner.** Entro il 2028 almeno il 15% delle decisioni di lavoro quotidiane sarà preso in autonomia da agenti, contro lo 0% del 2024.
 - **Cloud Security Alliance, febbraio 2026.** Solo il 28% degli intervistati riconduce in modo affidabile le azioni di un agente a una persona o a un sistema in tutti gli ambienti. Il 46% ci riesce solo in alcuni, il 9% per niente.
-- **OWASP, dicembre 2025.** Il progetto ha pubblicato la Top 10 per le applicazioni agentiche, scritta con oltre 100 esperti. Tra le categorie ci sono l'uso improprio degli strumenti, la comunicazione insicura tra agenti e i guasti a cascata.
+- **OWASP, dicembre 2025.** La Top 10 per le applicazioni agentiche è scritta con oltre 100 esperti. Include l'uso improprio degli strumenti, la comunicazione insicura tra agenti e i guasti a cascata.
+- **Gartner, giugno 2025.** Oltre il 40% dei progetti di AI agentica sarà cancellato entro la fine del 2027, anche per controlli del rischio inadeguati. Solo circa 130 fornitori, su migliaia, offrono agenti veri.
 
 ## Le regole minime per partire
 
-Gli agenti funzionano bene in ambienti stretti, con input e output delimitati e una persona che approva le azioni importanti. Prima di lasciarli lavorare su sistemi reali servono queste basi.
+Gli agenti funzionano bene in ambienti stretti, con input e output delimitati e una persona che approva le azioni importanti. Le regole qui sotto mettono i controlli fuori dal modello, come chiede Nadella.
 
 1. **Permessi minimi, imposti dal sistema.** Ogni agente e subagente accede solo alle cartelle, ai repository e alle tabelle che gli servono. Un divieto scritto nel prompt resta una richiesta.
-2. **Nessuna credenziale in giro.** Se un token è leggibile in un file, l'agente può usarlo. Servono token separati per staging e produzione, con lo scopo più stretto possibile.
-3. **Conferma umana per l'irreversibile.** Cancellazioni, deploy, pagamenti e invii all'esterno passano da un'approvazione che l'agente non può aggirare.
-4. **Rompere la trifecta.** Se un agente legge contenuti esterni, non deve avere insieme dati sensibili e un canale per farli uscire.
-5. **Registro di ogni chiamata, subagenti compresi.** Per ogni azione serve sapere quale agente ha usato quale strumento su quale risorsa, e a nome di chi.
+2. **Nessuna credenziale in giro.** Se un token è leggibile in un file, o un servizio lo rilascia a chiunque, l'agente può usarlo. Servono token separati per staging e produzione, con lo scopo più stretto possibile.
+3. **Conferma umana per l'irreversibile.** Cancellazioni, deploy, pagamenti e invii all'esterno passano da un'approvazione che l'agente non può aggirare. Una persona autorizzata deve poter fermare l'agente a metà lavoro.
+4. **Uscita chiusa per default.** Gli agenti raggiungono solo le destinazioni che servono, e chi legge contenuti esterni non ha insieme dati sensibili e un canale per farli uscire.
+5. **Registro di ogni chiamata, subagenti compresi.** Per ogni azione serve sapere quale agente ha usato quale strumento su quale risorsa, e a nome di chi. Il riassunto e il ragionamento del modello restano un racconto.
 6. **Backup separati.** Su un altro volume, meglio presso un altro fornitore, e provati con un ripristino vero.
 7. **Partire in piccolo.** Si comincia da un flusso a basso rischio e si allarga quando i registri mostrano che l'agente resta nei confini.
