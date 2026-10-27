@@ -1,9 +1,9 @@
 ---
 title: "Google lancia Polar Peaks: studenti mappano il cervello con l'IA"
 description: "Un nuovo gioco educativo insegna ai ragazzi 11-14 anni come l'intelligenza artificiale aiuta la ricerca neuroscientifica."
-date: 2026-10-26
+date: 2026-10-27
 category: intelligenza-artificiale
-image: https://storage.googleapis.com/gweb-uniblog-publish-prod/images/social_sharing_updated.width-1300.png
+image: /blog/google-lancia-polar-peaks-studenti-mappano-il/cover.png
 imageCredit: "Google"
 imageCreditUrl: https://blog.google/products-and-platforms/products/education/ai-quests-polar-peaks/
 perTe:
