@@ -44,6 +44,10 @@ Installazione e uso:
   Subito prima dei passi elenca i requisiti scritti nella fonte: sistema operativo, scheda video e memoria video, spazio su disco.
 - Se la fonte non contiene i passi, non scrivere nessuna sezione su installazione o uso e non dire genericamente "si scarica" o "serve il terminale"."""
 ATOM = '{http://www.w3.org/2005/Atom}'
+SITEMAP = '{http://www.sitemaps.org/schemas/sitemap/0.9}'
+NEWS = '{http://www.google.com/schemas/sitemap-news/0.9}'
+IN_ITALY = 'già ripresa in Italia'
+NAME = re.compile(r"[A-Za-z][\w.-]*\d[\w.-]*|[A-Z][\w-]{2,}")
 
 STYLE = """Scrivi in italiano semplice, per lettori comuni che non sono tecnici. Dai del tu al lettore.
 Regole di stile, tutte obbligatorie:
@@ -72,7 +76,8 @@ Formato della risposta: solo un oggetto JSON, senza testo prima o dopo, con due 
   "id", il numero della notizia nella lista ricevuta;
   "motivo", perché interessa a un lettore italiano, scritto da te con il fatto concreto della notizia;
   "consigliata", true se merita davvero un articolo, altrimenti false.
-Gli "id" devono essere numeri presenti nella lista, tutti diversi."""
+Gli "id" devono essere numeri presenti nella lista, tutti diversi.
+Le voci con [{IN_ITALY}] sono già uscite su un sito italiano, quindi se ne parla: a parità di interesse mettile più in alto."""
 
 DRAFT_PROMPT = f"""Sei la redazione di un blog italiano di notizie sull'intelligenza artificiale per il grande pubblico.
 Scrivi un articolo sulla notizia che ricevi, basandoti solo sul testo della fonte.
@@ -309,6 +314,29 @@ def credit(item, url):
             'creditUrl': item['link']} if url else None
 
 
+def parse_radar(xml, start, now):
+    """Return the name sets of the Italian headlines in a news sitemap published between start and now."""
+    names = []
+    for u in ET.fromstring(xml.lstrip()).iter(SITEMAP + 'url'):
+        if not urllib.parse.urlparse(u.findtext(SITEMAP + 'loc', '')).path.startswith('/news/'):
+            continue
+        date = parse_date(u.findtext(f'{NEWS}news/{NEWS}publication_date'))
+        if date and start - DEFAULT_WINDOW <= date <= now:
+            names.append(headline_names(html.unescape(u.findtext(f'{NEWS}news/{NEWS}title', ''))))
+    return names
+
+
+def headline_names(title):
+    names = {n.lower().rstrip('.-') for n in NAME.findall(title)}
+    return names | {re.match(r'[a-z]*', n).group(0) for n in names if re.search(r'\d', n)} - {''}
+
+
+def covered(item, radar):
+    """True when an Italian headline shares a versioned name or two names with the item's title."""
+    ours = headline_names(item['title'])
+    return any(len(ours & names) >= 2 or any(re.search(r'\d', n) for n in ours & names) for names in radar)
+
+
 def source_text(item):
     """Return (text for the model, image dict or None)."""
     if item.get('readme'):
@@ -340,12 +368,14 @@ def since(now, last_run):
 
 def collect(start, now, seen):
     feeds = common.read_json(common.ROOT / 'pipeline' / 'feeds.json', [])
-    items = []
+    items, radar = [], []
     for f in feeds:
         try:
             tipo = f.get('tipo', '')
-            page = fetch(f['url'], raw=not tipo)
-            if tipo == 'github-trending':
+            page = fetch(f['url'], raw=not tipo or tipo == 'radar-it')
+            if tipo == 'radar-it':
+                radar += parse_radar(page, start, now)
+            elif tipo == 'github-trending':
                 items += parse_trending(page, f['name'], now)
             elif tipo.startswith('hf-'):
                 items += parse_hf(page, f['name'], now, tipo[3:])
@@ -355,6 +385,9 @@ def collect(start, now, seen):
             print(f"feed {f['name']} non letto: {e}", file=sys.stderr)
     fresh = {i['link']: i for i in items
              if i['link'] not in seen and start <= i['date'] <= now and not ROUNDUP.search(i['title'])}
+    for i in fresh.values():
+        i['italia'] = covered(i, radar)
+    print(f"radar italiano: {len(radar)} titoli, {sum(i['italia'] for i in fresh.values())} notizie già riprese")
     return list(fresh.values())
 
 

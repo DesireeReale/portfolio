@@ -10,10 +10,13 @@ perTe:
 sources:
   - title: "The Verge: Can AI help solve the COBOL code crisis?"
     url: https://www.theverge.com/ai-artificial-intelligence/1018434/cobol-migration-legacy-code-openai-anthropic
+    note: "l'articolo con le interviste ai docenti"
   - title: "OpenAI: Progressi nella programmazione con linguaggi a risorse limitate"
     url: https://openai.com/it-IT/index/low-resource-programming-languages/
+    note: "i test originali di OpenAI"
   - title: "Anthropic: COBOL Modernization with AI"
     url: https://claude.com/blog/how-ai-helps-break-cost-barrier-cobol-modernization
+    note: "la guida di Anthropic alla migrazione"
 ---
 ## Dove gira ancora il COBOL
 
@@ -47,5 +50,12 @@ Per Alastair Donaldson, dell'Imperial College di Londra, il primo ostacolo è ca
 
 Jacopo Mauro, dell'Università della Danimarca Meridionale, indica la verifica formale, che controlla il codice con metodi matematici. Applicarla al codice legacy richiederebbe però ==un'enorme quantità di lavoro==, e fino ad allora serve la verifica umana.
 
-> [!ATTENZIONE] L'1% che resta
-> Zaytsev fa il conto: se uno strumento gestisce il 99% del codice, l'1% rimasto può valere un milione di righe sparse in tutto il sistema.
+## L'1% che resta
+
+Zaytsev fa il conto: se uno strumento gestisce il 99% del codice, l'1% rimasto può valere ==un milione di righe== sparse in tutto il sistema.
+
+> [!PUNTO] Per chi deve migrare un sistema
+> - Il 97,9% di OpenAI riguarda singoli programmi tradotti in test, non un sistema intero con i suoi dati e le sue integrazioni.
+> - I docenti consigliano di sostituire un pezzo alla volta e di far girare vecchio e nuovo sistema sugli stessi flussi, confrontando i risultati.
+> - Gli errori più insidiosi sono quelli che non bloccano niente, come un arrotondamento diverso nei conti.
+> - OpenAI stessa scrive che in produzione servono ancora la revisione di esperti e i test sulle regole di business.

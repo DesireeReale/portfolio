@@ -14,18 +14,25 @@ perTe:
 sources:
   - title: "Pollen Robotics: Meet Microduck"
     url: https://pollen-robotics.com/microduck/blog/introducing-microduck/
+    note: "l'annuncio ufficiale"
   - title: "Pollen Robotics: pagina di Microduck"
     url: https://pollen-robotics.com/microduck
+    note: "prezzo e preordine"
   - title: "Pollen Robotics: press kit e scheda tecnica di Microduck"
     url: https://pollen-robotics.com/microduck/press-kit/
+    note: "scheda tecnica e immagini ufficiali"
   - title: "GitHub, pollen-robotics/microduck"
     url: https://github.com/pollen-robotics/microduck
+    note: "il software del robot"
   - title: "GitHub, pollen-robotics/microduck_rl"
     url: https://github.com/pollen-robotics/microduck_rl
+    note: "il codice per addestrare i movimenti"
   - title: "GitHub, microduck: FAQ"
     url: https://github.com/pollen-robotics/microduck/blob/main/docs/faq.md
+    note: "le domande frequenti del progetto"
   - title: "Hugging Face Spaces: simulatore di Microduck"
     url: https://huggingface.co/spaces/pollen-robotics/microduck-simulator
+    note: "il simulatore da provare nel browser"
 ---
 Il 27 agosto 2026 Pollen Robotics ha aperto i preordini di Microduck, un ==robot bipede alto 25 centimetri== con la forma di una papera. Pollen è il team di robotica di Hugging Face, con sede a Bordeaux, ed è entrato nell'azienda nell'aprile 2025.
 

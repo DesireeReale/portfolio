@@ -13,10 +13,13 @@ perTe:
 sources:
   - title: "Google: Our newest AI Quest: Mapping the human brain"
     url: https://blog.google/products-and-platforms/products/education/ai-quests-polar-peaks/
+    note: "l'annuncio ufficiale di Google"
   - title: "Google Research: la mappa completa del cervello del moscerino della frutta"
     url: https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/
+    note: "la ricerca da cui nasce la missione"
   - title: "Google Research: AI Quests"
     url: https://research.google/ai-quests/intl/en_us
+    note: "la pagina delle missioni, per provarle"
 ---
 ## Cosa fanno i ragazzi in Polar Peaks
 

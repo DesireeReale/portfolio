@@ -47,6 +47,10 @@ Da creare, una volta sola:
 
 Le risposte arrivate prima dell'attivazione restano leggibili solo con `getUpdates`: attiva il webhook dopo un giro del mattino.
 
+## Radar italiano
+
+`feeds.json` include la news-sitemap di pasqualepillitteri.it (`"tipo": "radar-it"`), indicata nel suo robots.txt: una sola richiesta a corsa. I suoi titoli non diventano notizie e non arrivano al modello: servono solo a segnare come "già ripresa in Italia" le notizie raccolte dalle altre fonti che citano gli stessi nomi (due nomi in comune, o un nome con un numero di versione). Le sue pagine `/news/` rifiutano i client che non sono browser, quindi i link alle fonti primarie dei suoi articoli non si possono leggere.
+
 ## Orari
 
 Il cron di GitHub usa l'ora UTC e non segue l'ora legale. La sera parte alle 18:30 UTC (19:30 d'inverno, 20:30 d'estate), la mattina alle 05:30 UTC (06:30 d'inverno, 07:30 d'estate). GitHub può partire in ritardo anche di ore, o saltare una corsa: per questo c'è una seconda partenza di riserva due ore dopo (20:30 e 07:30 UTC), che esce subito se la corsa di quel giorno è già stata fatta (`state/last_run.txt` per la sera, `state/morning.json` per la mattina). Le corse lanciate a mano partono sempre.
