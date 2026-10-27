@@ -25,6 +25,14 @@
  *   ---
  *   Corpo in Markdown.
  *
+ * Nel corpo:
+ *   - i titoletti `##` ricevono un'ancora e formano l'indice "In questo articolo" (da 3 titoletti in su);
+ *   - un paragrafo fatto solo di testo in grassetto (`**Cosa è successo**`) diventa un'etichetta;
+ *   - riquadri in stile GitHub, con l'etichetta da sola sulla prima riga:
+ *       > [!PUNTO]
+ *       > La frase da ricordare della sezione.
+ *     Tipi: PUNTO (il punto chiave), REGOLE (una lista di regole), ATTENZIONE (un rischio).
+ *
  * Categorie: intelligenza-artificiale, guide-e-tutorial, app-e-strumenti, ai-in-locale,
  * big-tech, sicurezza, funziona-davvero, per-la-tua-azienda.
  */
@@ -38,6 +46,32 @@ const CONTENT = process.env.BLOG_CONTENT || join(ROOT, 'content', 'blog');
 const DIST = process.env.BLOG_DIST || join(ROOT, 'dist');
 const STATIC = process.env.BLOG_STATIC || join(ROOT, 'public');
 const MIN_IMAGE_WIDTH = 600;
+const CALLOUTS = { PUNTO: 'Il punto', REGOLE: 'Le regole', ATTENZIONE: 'Attenzione' };
+const TOC_MIN = 3;
+
+const plainText = (h) => h.replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+const anchor = (t) => t.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+function enhance(html) {
+  const toc = [];
+  html = html
+    .replace(/<blockquote>\s*<p>\[!(PUNTO|REGOLE|ATTENZIONE)\]\s*([\s\S]*?)<\/blockquote>/g, (m, kind, rest) =>
+      `<aside class="callout"><p class="callout-label">${CALLOUTS[kind]}</p>\n${rest.startsWith('</p>') ? rest.slice(4) : `<p>${rest}`}</aside>`)
+    .replace(/<p><strong>([^<]{1,40})<\/strong><\/p>/g, '<p class="label">$1</p>')
+    .replace(/<h2>([\s\S]*?)<\/h2>/g, (m, inner) => {
+      const base = anchor(plainText(inner)) || 'sezione';
+      let id = base;
+      for (let n = 2; toc.some((t) => t.id === id); n++) id = `${base}-${n}`;
+      toc.push({ id, title: plainText(inner) });
+      return `<h2 id="${id}">${inner}</h2>`;
+    });
+  return { html, toc };
+}
+
+const tocNav = (toc) => (toc.length >= TOC_MIN ? `<nav class="toc" aria-labelledby="toc-title">
+    <p class="toc-label" id="toc-title">In questo articolo</p>
+    <ol>${toc.map((t) => `<li><a href="#${t.id}">${esc(t.title)}</a></li>`).join('')}</ol>
+  </nav>` : '');
 const SITE = 'https://desireereale.netlify.app';
 const AUTHOR = 'Desirèe Reale';
 const GITHUB = 'https://github.com/desireereale';
@@ -119,7 +153,7 @@ function loadArticles() {
         perAzienda: [].concat(data.perAzienda ?? []),
         sources,
         minutes: Math.max(1, Math.round(words / 200)),
-        html: marked.parse(body),
+        ...enhance(marked.parse(body)),
       };
     })
     .sort((a, b) => b.date - a.date || a.title.localeCompare(b.title));
@@ -174,6 +208,7 @@ const CSS = `
 :root {
   --bg: #fafaf9; --surface: #ffffff; --surface-2: #f5f5f4; --line: rgba(0,0,0,0.08);
   --fg: #1c1917; --muted: #78716c; --accent: #d97706; --accent-soft: rgba(245,158,11,0.12); --on-accent: #1c1917;
+  --accent-text: #b45309; --callout-bg: #fef3c7; --callout-border: #d97706; --callout-label: #92400e;
   --yes: #15803d; --no: #b91c1c; --mid: #b45309;
   --display: "Plus Jakarta Sans", system-ui, sans-serif;
   --text: "Inter", system-ui, sans-serif;
@@ -182,25 +217,27 @@ const CSS = `
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #020617; --surface: #0f172a; --surface-2: #111c33; --line: rgba(255,255,255,0.08);
   --fg: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --accent-soft: rgba(56,189,248,0.12); --on-accent: #020617;
+  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc;
   --yes: #4ade80; --no: #f87171; --mid: #fbbf24; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #020617; --surface: #0f172a; --surface-2: #111c33; --line: rgba(255,255,255,0.08);
   --fg: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --accent-soft: rgba(56,189,248,0.12); --on-accent: #020617;
+  --accent-text: #38bdf8; --callout-bg: #0c2236; --callout-border: #38bdf8; --callout-label: #7dd3fc;
   --yes: #4ade80; --no: #f87171; --mid: #fbbf24; color-scheme: dark }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--text); }
 a { color: inherit; text-decoration: none; }
-a:hover h3, a:hover h2 { color: var(--accent); }
+a:hover h3, a:hover h2 { color: var(--accent-text); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 .wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
-.cat { font: 500 12px/1 var(--mono); color: var(--accent); letter-spacing: 0.04em; }
+.cat { font: 500 12px/1 var(--mono); color: var(--accent-text); letter-spacing: 0.04em; }
 .meta { font-size: 13px; color: var(--muted); }
 .verdict { display: inline-flex; align-items: center; gap: 6px; font: 700 13px/1 var(--display); padding: 6px 10px; border-radius: 999px; border: 1.5px solid currentColor; }
 .verdict::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .v-yes { color: var(--yes); } .v-no { color: var(--no); } .v-mid { color: var(--mid); }
 .tags { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.cats .biz-link { color: var(--accent); font-weight: 600; }
+.cats .biz-link { color: var(--accent-text); font-weight: 600; }
 .biz { margin-top: 44px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
 .biz-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; margin-bottom: 18px; }
 .biz-head h2 { font-size: 24px; }
@@ -221,9 +258,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .cats a:hover, .cats a.on { color: var(--fg); }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 14px; border: 0; cursor: pointer; font-family: inherit; }
 .ticker { display: flex; gap: 14px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--line); font-size: 14px; overflow: hidden; }
-.ticker b { font: 500 12px var(--mono); color: var(--accent); white-space: nowrap; }
+.ticker b { font: 500 12px var(--mono); color: var(--accent-text); white-space: nowrap; }
 .ticker span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ticker a:hover span { color: var(--accent); }
+.ticker a:hover span { color: var(--accent-text); }
 .home { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; padding-block: 36px 64px; }
 .lead { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
 .lead h2 { font-size: clamp(26px, 3vw, 38px); margin: 10px 0 12px; }
@@ -253,22 +290,37 @@ aside { display: flex; flex-direction: column; gap: 28px; }
 .news p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
 .news form { display: grid; gap: 10px; }
 .news input { min-height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 12px; font: inherit; }
-.start a:hover { color: var(--accent); }
+.start a:hover { color: var(--accent-text); }
 .start a { display: block; padding-block: 9px; border-bottom: 1px solid var(--line); font-size: 15px; }
 .start a:last-child { border: 0; }
-.article { max-width: 720px; margin: 0 auto; padding-block: 36px 72px; }
+.article { max-width: 40rem; margin: 0 auto; padding-block: 36px 72px; }
 .back { font-size: 14px; color: var(--muted); }
-.article h1 { font-size: clamp(30px, 4.4vw, 46px); margin: 14px 0 16px; }
-.article .dek { font-size: 19px; color: var(--muted); margin: 0 0 18px; }
+.article h1 { font-size: clamp(30px, 4.4vw, 44px); margin: 14px 0 16px; }
+.article .dek { font-size: 20px; line-height: 1.55; color: var(--muted); margin: 0 0 18px; }
 .article .cover { margin: 26px 0; }
-.article h2 { font-size: 24px; margin: 34px 0 10px; }
-.article h3 { font-size: 19px; margin: 26px 0 8px; }
-.article p, .article li { font-size: 17px; line-height: 1.7; }
-.body a { color: var(--accent); text-decoration: underline; }
-.body code { font: 14px var(--mono); background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
+.article h2 { font-size: 28px; margin: 56px 0 14px; scroll-margin-top: 130px; }
+.article h3 { font-size: 21px; margin: 36px 0 10px; }
+.article p, .article li { font-size: 18px; line-height: 1.7; text-align: left; }
+.body p, .body ul, .body ol { margin: 0 0 1.1em; }
+.body li + li { margin-top: 0.5em; }
+.body em, .body i { font-style: normal; font-weight: 600; }
+.body strong { font-weight: 700; }
+.body a, .toc a, .sources a, .figure figcaption a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.body a { color: var(--accent-text); }
+.body code { font: 15px var(--mono); background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
 .body pre { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
 .body pre code { background: none; padding: 0; }
 .body blockquote { margin: 22px 0; padding-left: 18px; border-left: 3px solid var(--accent); color: var(--muted); }
+.article .body .label { font: 600 13px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); margin: 1.6em 0 0.5em; }
+.callout { background: var(--callout-bg); border-left: 4px solid var(--callout-border); border-radius: 4px 12px 12px 4px; padding: 20px 24px; margin: 28px 0; }
+.callout > :last-child { margin-bottom: 0; }
+.article .callout-label { font: 700 13px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--callout-label); margin: 0 0 8px; }
+.callout ol, .callout ul { padding-left: 22px; }
+.toc { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 18px; margin: 28px 0 36px; }
+.article .toc-label { font: 600 13px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.toc ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.article .toc li { font-size: 17px; line-height: 1.45; }
+.toc a:hover { color: var(--accent-text); }
 .impact { background: var(--accent-soft); border-radius: 14px; padding: 20px 22px; margin: 26px 0; }
 .impact h2 { margin-top: 0; font-size: 19px; }
 .impact ul { margin: 0; padding-left: 20px; }
@@ -288,7 +340,7 @@ footer a:hover { color: var(--fg); }
   .item .thumb { display: none; }
   .bar .btn { padding: 0 14px; }
 }
-@media (prefers-reduced-motion: no-preference) { a h3, a h2 { transition: color .2s; } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } a h3, a h2 { transition: color .2s; } }
 `.trim();
 
 const FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='14' fill='%2338bdf8'/%3E%3Cpath d='M18 20 l10 8 l-10 8 M32 38 h10' stroke='%230b1220' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
@@ -484,6 +536,7 @@ function articlePage(a) {
   <span class="meta">${AUTHOR} · <time datetime="${a.date.toISOString()}">${fullDate(a.date)}</time> · ${a.minutes} min di lettura</span>
   ${figure(a)}
   ${bullets('In breve, cosa cambia per te', a.perTe, 'impact')}
+  ${tocNav(a.toc)}
   <div class="body">
 ${a.html}
   </div>

@@ -22,6 +22,7 @@ MAX_WORDS_SENTENCE = 30
 MIN_WORDS, MAX_WORDS = 250, 600
 CODE_BLOCK = re.compile(r'```[^\n]*\n(.*?)```', re.S)
 INLINE_CODE = re.compile(r'`[^`\n]+`')
+ALERT = re.compile(r'^[ \t]*>[ \t]*\[!(?:PUNTO|REGOLE|ATTENZIONE)\][ \t]*$', re.M)
 LICENCE = re.compile(r'licenz|licens|\b(a?gpl|mit|apache|bsd)\b', re.I)
 GENERIC_HEADING = re.compile(r"(cos'è|cosa cambia|perché (è|conta|importa)|panoramica|il contesto|in breve|i vantaggi|vantaggi"
                              r"|cosa (c'è da |devi )?sapere|cosa significa|le novità|introduzione|conclusion|i dettagli)\b", re.I)
@@ -97,7 +98,7 @@ def check(draft, outlet=None):
 
 
 def prose(text):
-    return INLINE_CODE.sub('', CODE_BLOCK.sub('', text))
+    return ALERT.sub('', INLINE_CODE.sub('', CODE_BLOCK.sub('', text)))
 
 
 def structure_problems(body):
@@ -111,6 +112,8 @@ def structure_problems(body):
             problems.append(f'titoletto generico: "{heading}"')
         if HOWTO_HEADING.search(heading) and not (re.search(r'^\s*\d+\.\s', content, re.M) or '```' in content):
             problems.append(f'titoletto "{heading}" senza passi numerati o comandi')
+        if '[!PUNTO]' not in content:
+            problems.append(f'sezione "{heading}" senza il riquadro [!PUNTO] finale')
     return problems
 
 

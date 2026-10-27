@@ -84,6 +84,13 @@ Titoletti:
 - Vietati i titoletti generici: "Cos'è", "Cosa cambia per...", "Perché è importante", "Panoramica", "Il contesto", "In breve", "I vantaggi", "Cosa sapere".
 - Se scrivi un titoletto su installazione o uso, sotto devono esserci passi numerati o comandi in un blocco di codice.
 
+Leggibilità:
+- Ogni paragrafo ha al massimo 3 frasi; vai a capo spesso.
+- In ogni paragrafo metti in grassetto (**così**) al massimo 1 o 2 frasi chiave, mai parole sparse e mai il corsivo.
+- Chiudi ogni sezione "## " con il punto da ricordare, su due righe esatte come queste:
+  > [!PUNTO]
+  > Una sola frase semplice con la cosa da ricordare della sezione, senza ripetere il titoletto.
+
 Aziende:
 - "perAzienda" contiene solo usi concreti per una piccola azienda o un professionista: un lavoro preciso che può fare con questo strumento,
   oppure un costo, un rischio o un obbligo di legge che lo riguarda.
