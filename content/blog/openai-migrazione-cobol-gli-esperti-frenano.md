@@ -3,15 +3,10 @@ title: "OpenAI dichiara il 97,9% nella migrazione del COBOL, gli esperti frenano
 description: "Il 19 ottobre OpenAI ha pubblicato test in cui GPT-6.1 Sol traduce programmi COBOL in linguaggi moderni. I docenti sentiti da The Verge ricordano che sostituire un sistema richiede molto di più."
 date: 2026-10-27
 category: intelligenza-artificiale
-forBusiness: true
 perTe:
   - "Nei test di OpenAI GPT-6.1 Sol migra il 97,9% dei programmi COBOL quando ragiona più a lungo."
   - "Il COBOL è nato nel 1959 e regge ancora il 95% delle transazioni ai bancomat, secondo i dati IBM citati da OpenAI."
   - "Per i docenti sentiti da The Verge la parte difficile è capire il vecchio sistema e dividerlo in pezzi sostituibili."
-perAzienda:
-  - "Prima di migrare servono test che facciano girare gli stessi flussi sul vecchio e sul nuovo sistema e ne confrontino i risultati."
-  - "Arrotondamenti e gestione dei record mancanti vanno documentati, perché una riscrittura può cambiarli senza dare errori."
-  - "Conviene partire da un solo componente con confini chiari, come consiglia anche la guida di Anthropic."
 sources:
   - title: "The Verge: Can AI help solve the COBOL code crisis?"
     url: https://www.theverge.com/ai-artificial-intelligence/1018434/cobol-migration-legacy-code-openai-anthropic
