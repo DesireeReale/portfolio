@@ -442,8 +442,8 @@ const isBusiness = (a) => a.forBusiness === true || a.category === 'per-la-tua-a
 function homePage(articles) {
   const lead = articles.find((a) => a.featured) ?? articles[0];
   const latest = articles.find((a) => a !== lead);
-  const biz = articles.filter((a) => isBusiness(a) && a !== lead && a !== latest).slice(0, 3);
-  const rest = articles.filter((a) => a !== lead && a !== latest && !biz.includes(a)).slice(0, 12);
+  const biz = articles.filter((a) => isBusiness(a) && a !== lead).slice(0, 3);
+  const rest = articles.filter((a) => a !== lead && !biz.includes(a)).slice(0, 12);
   const main = !lead
     ? `<div class="home"><div><p class="empty">Nessun articolo, per ora.</p></div>${sidebar(articles)}</div>`
     : `${latest ? `<a class="ticker" href="${url(latest)}"><b>Ultim'ora · ${dayMonth(latest.date)}</b><span>${esc(latest.title)}</span></a>` : ''}
