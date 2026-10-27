@@ -109,7 +109,7 @@ function loadArticles() {
       if (Number.isNaN(date.getTime())) throw new Error(`${f}: data non valida "${data.date}"`);
       const sources = data.sources ?? [];
       if (!Array.isArray(sources) || sources.some((s) => !s?.title || !s?.url)) throw new Error(`${f}: sources deve essere una lista di {title, url}`);
-      const words = body.split(/\s+/).filter(Boolean).length;
+      const words = body.replace(/<(style|svg)[\s\S]*?<\/\1>/g, '').split(/\s+/).filter(Boolean).length;
       return {
         ...data,
         slug: f.replace(/\.md$/, ''),
