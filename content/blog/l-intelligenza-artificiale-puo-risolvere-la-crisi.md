@@ -1,7 +1,7 @@
 ---
 title: "L'intelligenza artificiale può risolvere la crisi del codice COBOL?"
 description: "OpenAI e Anthropic provano a usare l'intelligenza artificiale per aggiornare i vecchi linguaggi informatici."
-date: 2026-10-26
+date: 2026-10-27
 category: intelligenza-artificiale
 forBusiness: true
 perTe:
