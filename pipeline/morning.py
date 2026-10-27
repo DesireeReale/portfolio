@@ -86,8 +86,14 @@ def run(today=None):
     pending_path = common.drafts_dir() / 'pending.json'
     pending = common.read_json(pending_path, {})
     decisions_path = common.ROOT / 'pipeline' / 'state' / 'decisions.json'
+    state_path = common.ROOT / 'pipeline' / 'state' / 'morning.json'
+    state = common.read_json(state_path, {})
     webhook = common.telegram('getWebhookInfo').get('url')
-    updates = [] if webhook else common.telegram('getUpdates', allowed_updates=['message', 'callback_query'])
+    # The offset confirms the previous run's updates only once that run's commit is in the repository.
+    offset = {'offset': state['offset']} if state.get('offset') else {}
+    updates = [] if webhook else common.telegram('getUpdates', allowed_updates=['message', 'callback_query'], **offset)
+    print(f"Telegram: {len(updates)} aggiornamenti" + (f" ({updates[0]['update_id']}-{updates[-1]['update_id']})" if updates else '')
+          + (' (webhook attivo)' if webhook else ''))
     decisions, notes = answers(updates, pending)
     saved_decisions, saved_notes = recorded(decisions_path, pending)
     decisions.update(saved_decisions)
@@ -121,7 +127,8 @@ def run(today=None):
         except Exception as e:
             print(f'riepilogo non inviato: {e}', file=sys.stderr)
     if updates:
-        common.telegram('getUpdates', offset=max(u['update_id'] for u in updates) + 1, timeout=0)
+        state['offset'] = max(u['update_id'] for u in updates) + 1
+    common.write_json(state_path, dict(state, day=today.isoformat()))
 
 
 if __name__ == '__main__':

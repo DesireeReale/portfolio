@@ -11,7 +11,13 @@ ROOT = Path(__file__).resolve().parents[1]
 CATEGORIES = ['intelligenza-artificiale', 'guide-e-tutorial', 'app-e-strumenti', 'ai-in-locale',
               'big-tech', 'sicurezza', 'funziona-davvero', 'per-la-tua-azienda']
 LLM_GAP = 6
+LLM_TIMEOUT = 90
+LLM_MAX_WAIT = 60
+LLM_CALL_CAP = 240
+MIN_CALL_SECONDS = 20
+RETRY_CODES = (429, 500, 502, 503, 504)
 _last_llm_call = float('-inf')
+_deadline = float('inf')
 
 
 def drafts_dir():
@@ -46,7 +52,7 @@ def post_json(url, payload, headers=None, timeout=120, tries=4):
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.load(r)
         except urllib.error.HTTPError as e:
-            if e.code not in (429, 500, 502, 503, 504) or n == tries - 1:
+            if e.code not in RETRY_CODES or n == tries - 1:
                 raise
             time.sleep(min(retry_after(e) or 15 * 2 ** n, 300))
 
@@ -55,8 +61,22 @@ class LLMError(RuntimeError):
     pass
 
 
+class BudgetExceeded(LLMError):
+    pass
+
+
+def set_budget(seconds):
+    global _deadline
+    _deadline = time.monotonic() + seconds
+
+
+def time_left():
+    return _deadline - time.monotonic()
+
+
 def llm(messages, max_tokens, model=None, tries=2, json_mode=False):
-    """Return the model's text; raise LLMError after `tries` timeouts, empty or truncated answers."""
+    """Return the model's text; raise LLMError after `tries` failed attempts or LLM_CALL_CAP seconds,
+    BudgetExceeded when the run's time budget (set_budget) is about to run out."""
     global _last_llm_call
     model = model or os.environ['LLM_MODEL']
     base = os.environ['LLM_BASE_URL'].rstrip('/')
@@ -73,29 +93,42 @@ def llm(messages, max_tokens, model=None, tries=2, json_mode=False):
         payload['reasoning_effort'] = 'low'
     if 'openrouter.ai' in base:
         payload['reasoning'] = {'effort': 'low'}
-    for n in range(tries):
-        time.sleep(max(0, _last_llm_call + LLM_GAP - time.monotonic()))
+    start = time.monotonic()
+    cap = min(start + LLM_CALL_CAP, _deadline)
+    url, headers = base + '/chat/completions', {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}
+    problem, pause = 'nessun tentativo', 0
+    for n in range(1, tries + 1):
+        wait = max(pause, _last_llm_call + LLM_GAP - time.monotonic())
+        left = cap - time.monotonic() - wait
+        if left < MIN_CALL_SECONDS:
+            error = BudgetExceeded if cap == _deadline else LLMError
+            raise error(f'tempo finito per il modello {model} dopo {time.monotonic() - start:.0f}s: {problem}')
+        time.sleep(wait)
+        t0 = time.monotonic()
         try:
-            data = post_json(base + '/chat/completions', payload, {'Authorization': 'Bearer ' + os.environ['LLM_API_KEY']}, timeout=180)
-        except urllib.error.HTTPError:
-            raise
-        except (TimeoutError, urllib.error.URLError) as e:
-            if n == tries - 1:
-                raise LLMError(f'nessuna risposta dal modello {model} dopo {tries} tentativi: {e}') from e
-            continue
+            data = post_json(url, payload, headers, timeout=min(LLM_TIMEOUT, left), tries=1)
+        except urllib.error.HTTPError as e:
+            if e.code not in RETRY_CODES:
+                raise
+            problem, pause = f'HTTP {e.code}', min(retry_after(e) or LLM_GAP, LLM_MAX_WAIT)
+        except OSError as e:
+            problem, pause = f'nessuna risposta ({e})', 0
+        else:
+            choice = (data.get('choices') or [{}])[0]
+            content = ((choice.get('message') or {}).get('content') or '').strip()
+            reason = choice.get('finish_reason')
+            if content and reason != 'length':
+                print(f"modello {data.get('model', model)}: {len(content)} caratteri, "
+                      f"{(data.get('usage') or {}).get('completion_tokens')} token, {time.monotonic() - t0:.0f}s, tentativo {n}/{tries}")
+                return content
+            problem = 'risposta troncata (finish_reason=length)' if content else f'risposta vuota (finish_reason={reason})'
+            if data.get('error'):
+                problem += f", errore: {str(data['error'])[:200]}"
+            pause = 0
         finally:
             _last_llm_call = time.monotonic()
-        choice = (data.get('choices') or [{}])[0]
-        content = ((choice.get('message') or {}).get('content') or '').strip()
-        reason = choice.get('finish_reason')
-        answered = data.get('model', model)
-        if content and reason != 'length':
-            print(f'modello {answered}: {len(content)} caratteri, {(data.get("usage") or {}).get("completion_tokens")} token')
-            return content
-        problem = 'troncata (finish_reason=length)' if content else f'vuota (finish_reason={reason})'
-        if data.get('error'):
-            problem += f", errore: {str(data['error'])[:200]}"
-    raise LLMError(f'risposta {problem} dal modello {answered} dopo {tries} tentativi; '
+        print(f'modello {model}: tentativo {n}/{tries} non riuscito dopo {time.monotonic() - t0:.0f}s: {problem}')
+    raise LLMError(f'{problem} dal modello {model} dopo {tries} tentativi in {time.monotonic() - start:.0f}s; '
                    f'se è "length", ragionamento e testo hanno superato max_tokens={max_tokens}')
 
 

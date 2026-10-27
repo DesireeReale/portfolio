@@ -4,6 +4,8 @@ on:
   schedule:
     # Ora UTC: in Italia sono le 07:30 in estate (CEST, UTC+2) e 06:30 in inverno (CET, UTC+1).
     - cron: '30 5 * * *'
+    # Riserva: GitHub a volte salta o ritarda le corse programmate.
+    - cron: '30 7 * * *'
   workflow_dispatch:
 
 permissions:
@@ -16,13 +18,17 @@ jobs:
   run:
     if: github.repository == 'DesireeReale/blog-notizie-prova'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: python pipeline/morning.py
+      - run: |
+          if [ "${{ github.event_name }}" = schedule ] && grep -q "\"day\": \"$(date -u +%F)\"" pipeline/state/morning.json 2>/dev/null; then
+            echo "Corsa del mattino di oggi già fatta"; exit 0
+          fi
+          python pipeline/morning.py
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -34,7 +40,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase --autostash
-          mkdir -p public/blog
           mkdir -p content/blog public/blog
           git add pipeline/state pipeline/drafts content/blog public/blog
           git diff --cached --quiet || git commit -m "Notizie approvate del $(date -u +%F)"

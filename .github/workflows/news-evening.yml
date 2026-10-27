@@ -4,6 +4,8 @@ on:
   schedule:
     # Ora UTC: in Italia sono le 20:30 in estate (CEST, UTC+2) e 19:30 in inverno (CET, UTC+1).
     - cron: '30 18 * * *'
+    # Riserva: GitHub a volte salta o ritarda le corse programmate.
+    - cron: '30 20 * * *'
   workflow_dispatch:
 
 permissions:
@@ -16,13 +18,17 @@ jobs:
   run:
     if: github.repository == 'DesireeReale/blog-notizie-prova'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: python pipeline/evening.py
+      - run: |
+          if [ "${{ github.event_name }}" = schedule ] && grep -qE "^$(date -u +%F)T(1[89]|2[0-3])" pipeline/state/last_run.txt 2>/dev/null; then
+            echo "Corsa della sera di oggi già fatta"; exit 0
+          fi
+          python pipeline/evening.py
         env:
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}

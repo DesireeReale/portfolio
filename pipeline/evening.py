@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -21,6 +22,8 @@ PICK_TOKENS = 8000
 SOURCE_CHARS = 8000
 DRAFT_TOKENS = 6000
 MIN_SOURCE = 600
+BUDGET_MINUTES = float(os.environ.get('EVENING_BUDGET_MIN') or 25)
+DRAFT_RESERVE = 300
 TELEGRAM_LIMIT = 4000
 DEFAULT_WINDOW = timedelta(hours=24)
 MAX_WINDOW = timedelta(hours=72)
@@ -488,6 +491,7 @@ def try_send(slug, md, problems):
 
 def run(now=None):
     now = now or datetime.now(timezone.utc)
+    common.set_budget(BUDGET_MINUTES * 60)
     seen_path = common.ROOT / 'pipeline' / 'state' / 'seen.json'
     pending_path = common.drafts_dir() / 'pending.json'
     last_run_path = common.ROOT / 'pipeline' / 'state' / 'last_run.txt'
@@ -503,42 +507,54 @@ def run(now=None):
     retry = [i for i in retry if i['link'] not in seen and now - i['date'] <= MAX_WINDOW][:MAX_PICKS]
     last_run = last_run_path.read_text(encoding='utf-8').strip() if last_run_path.exists() else None
     retry_links = {i['link'] for i in retry}
+    t = time.monotonic()
     items = [i for i in collect(since(now, last_run), now, set(seen)) if i['link'] not in retry_links]
+    print(f'raccolta: {len(items)} notizie in {time.monotonic() - t:.0f}s')
     slots = MAX_PICKS - len(retry)
+    t = time.monotonic()
     picks = pick(items, slots) if slots else None
+    print(f'scelta: {time.monotonic() - t:.0f}s')
     taken = {p.stem for p in common.blog_dir().glob('*.md')} | set(pending)
-    written, failed = [], []
-    for item in retry + (picks or []):
-        try:
-            text, image = source_text(item)
-            if len(text) < MIN_SOURCE:
-                print(f"fonte troppo corta per {item['link']} ({len(text)} caratteri), notizia saltata", file=sys.stderr)
-                written.append(item['link'])
+    queue, written, failed = retry + (picks or []), [], []
+    try:
+        while queue:
+            if common.time_left() < DRAFT_RESERVE:
+                print(f'restano {common.time_left():.0f}s del budget: {len(queue)} bozze rimandate alla prossima corsa', file=sys.stderr)
+                break
+            item, t = queue.pop(0), time.monotonic()
+            try:
+                text, image = source_text(item)
+                if len(text) < MIN_SOURCE:
+                    print(f"fonte troppo corta per {item['link']} ({len(text)} caratteri), notizia saltata", file=sys.stderr)
+                    written.append(item['link'])
+                    continue
+                draft, problems = write_draft(item, text)
+                slug = common.slugify(draft['title'], taken)
+                md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']}, image)
+                (common.drafts_dir() / f'{slug}.md').write_text(md, encoding='utf-8')
+            except Exception as e:
+                print(f"bozza non scritta per {item['link']} dopo {time.monotonic() - t:.0f}s, riprovo alla prossima corsa: {e}", file=sys.stderr)
+                failed.append(item)
                 continue
-            draft, problems = write_draft(item, text)
-        except Exception as e:
-            print(f"bozza non scritta per {item['link']}, riprovo alla prossima corsa: {e}", file=sys.stderr)
-            failed.append(item)
-            continue
-        written.append(item['link'])
-        slug = common.slugify(draft['title'], taken)
-        taken.add(slug)
-        md = common.render(draft, now.date().isoformat(), {'title': f"{item['source']}: {item['title']}", 'url': item['link']}, image)
-        (common.drafts_dir() / f'{slug}.md').write_text(md, encoding='utf-8')
-        pending[slug] = {'messages': try_send(slug, md, problems), 'day': now.date().isoformat(), 'problems': problems}
+            written.append(item['link'])
+            taken.add(slug)
+            pending[slug] = {'messages': try_send(slug, md, problems), 'day': now.date().isoformat(), 'problems': problems}
+            common.write_json(pending_path, pending)
+            print(f'bozza {slug}: {time.monotonic() - t:.0f}s')
+        if picks == [] and not retry:
+            try:
+                common.telegram('sendMessage', chat_id=common.chat_id(), text=f'Nessuna notizia scelta stasera ({len(items)} candidate).')
+            except Exception as e:
+                print(f'Telegram non raggiungibile: {e}', file=sys.stderr)
+    finally:
+        failed += queue
+        failed_links = {i['link'] for i in failed}
+        if picks is not None:
+            written += [i['link'] for i in items if i['link'] not in failed_links]
+            last_run_path.write_text(now.isoformat() + '\n', encoding='utf-8')
         common.write_json(pending_path, pending)
-    if picks == [] and not retry:
-        try:
-            common.telegram('sendMessage', chat_id=common.chat_id(), text=f'Nessuna notizia scelta stasera ({len(items)} candidate).')
-        except Exception as e:
-            print(f'Telegram non raggiungibile: {e}', file=sys.stderr)
-    failed_links = {i['link'] for i in failed}
-    if picks is not None:
-        written += [i['link'] for i in items if i['link'] not in failed_links]
-        last_run_path.write_text(now.isoformat() + '\n', encoding='utf-8')
-    common.write_json(pending_path, pending)
-    common.write_json(seen_path, (seen + list(dict.fromkeys(written)))[-1000:])
-    common.write_json(retry_path, [dict(i, date=i['date'].isoformat()) for i in failed])
+        common.write_json(seen_path, (seen + list(dict.fromkeys(written)))[-1000:])
+        common.write_json(retry_path, [dict(i, date=i['date'].isoformat()) for i in failed])
 
 
 if __name__ == '__main__':

@@ -49,5 +49,13 @@ Le risposte arrivate prima dell'attivazione restano leggibili solo con `getUpdat
 
 ## Orari
 
-Il cron di GitHub usa l'ora UTC e non segue l'ora legale. La sera parte alle 18:30 UTC (19:30 d'inverno, 20:30 d'estate), la mattina alle 05:30 UTC (06:30 d'inverno, 07:30 d'estate). GitHub può partire con qualche minuto di ritardo.
+Il cron di GitHub usa l'ora UTC e non segue l'ora legale. La sera parte alle 18:30 UTC (19:30 d'inverno, 20:30 d'estate), la mattina alle 05:30 UTC (06:30 d'inverno, 07:30 d'estate). GitHub può partire in ritardo anche di ore, o saltare una corsa: per questo c'è una seconda partenza di riserva due ore dopo (20:30 e 07:30 UTC), che esce subito se la corsa di quel giorno è già stata fatta (`state/last_run.txt` per la sera, `state/morning.json` per la mattina). Le corse lanciate a mano partono sempre.
+
+## Tempi
+
+Ogni corsa ha 35 minuti. La sera ne usa al massimo 25 (`EVENING_BUDGET_MIN` per cambiarli): quando ne restano meno di 5 smette di scrivere bozze, salva quelle già fatte e mette le altre in `state/retry.json` per la sera dopo. Ogni chiamata al modello aspetta al massimo 90 secondi per risposta, 60 secondi dopo un 429 e 4 minuti in tutto; il log mostra modello, secondi e tentativi di ogni chiamata e la durata di ogni fase.
+
+## Risposte su Telegram
+
+Senza webhook le risposte restano su Telegram finché qualcuno chiama `getUpdates` con un `offset` più alto: da quel momento sono cancellate. Lo fa solo `morning.py`, e solo alla corsa successiva, con l'offset salvato in `state/morning.json`, cioè dopo che la corsa precedente ha fatto il commit. Non chiamare mai `getUpdates` con `offset` a mano o da altri script (`offset=-1` cancella tutte le risposte tranne l'ultima); aprire `getUpdates` senza `offset` nel browser è innocuo. Telegram tiene le risposte 24 ore: se non parte nessun giro del mattino entro 24 ore dal pulsante, la scelta si perde e va ripremuta.
 
